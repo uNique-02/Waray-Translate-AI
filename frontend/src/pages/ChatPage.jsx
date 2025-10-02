@@ -8,7 +8,7 @@ export default function WarayTranscribeApp({ enableChat = true }) {
       <header className="flex items-center justify-between p-4 border-b border-gray-300 bg-white">
         <div className="flex items-center space-x-6">
           <span className="text-blue-500 font-bold text-xl">
-            Waray Translate AI
+            WarayTranscribe AI
           </span>
           <nav className="flex space-x-6 text-gray-600">
             <a href="/" className="hover:text-black">
