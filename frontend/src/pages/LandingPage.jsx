@@ -4,36 +4,36 @@ import { Link } from "react-router-dom";
 
 export default function WarayTranscribeApp() {
   let messages = [
-    { from: "user", text: "Maupay nga adlaw! Kumusta ka?", time: "10:00 AM" },
-    { from: "bot", text: "Good day! How are you?", time: "10:00 AM" },
+    { from: "user", text: "Good day! How are you?", time: "10:00 AM" },
+    { from: "bot", text: "Maupay nga adlaw! Kumusta ka?", time: "10:00 AM" },
     {
       from: "user",
-      text: "Mabaysay ako. Naglilibot-libot la. Nano imo ginbubuhat yana?",
-      time: "10:01 AM",
-    },
-    {
-      from: "bot",
       text: "I am fine. Just exploring around. What are you doing now?",
       time: "10:01 AM",
     },
     {
-      from: "user",
-      text: "Nagbabasa ako hin libro mahitungod han kasaysayan han Waray-Waray.",
-      time: "10:02 AM",
+      from: "bot",
+      text: "Mabaysay ako. Naglilibot-libot la. Nano imo ginbubuhat yana?",
+      time: "10:01 AM",
     },
     {
-      from: "bot",
+      from: "user",
       text: "I am reading a book about the history of Waray-Waray.",
       time: "10:02 AM",
     },
     {
+      from: "bot",
+      text: "Nagbabasa ako hin libro mahitungod han kasaysayan han Waray-Waray.",
+      time: "10:02 AM",
+    },
+    {
       from: "user",
-      text: "Makapainteres! Mayda ka ba paborito nga bahin?",
+      text: "Interesting! Do you have a favorite part?",
       time: "10:03 AM",
     },
     {
       from: "bot",
-      text: "Interesting! Do you have a favorite part?",
+      text: "Makapainteres! Mayda ka ba paborito nga bahin?",
       time: "10:03 AM",
     },
   ];
