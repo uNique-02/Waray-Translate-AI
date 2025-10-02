@@ -44,7 +44,7 @@ export default function WarayTranscribeApp() {
       <header className="flex justify-between items-center p-4 border-b bg-white shadow-sm">
         <div className="flex items-center space-x-6">
           <span className="text-blue-500 font-bold text-xl">
-            Waray Translate AI
+            WarayTranscribe AI
           </span>
           <nav className="flex space-x-6 text-gray-600">
             <a href="#" className="hover:text-black">
@@ -85,12 +85,12 @@ export default function WarayTranscribeApp() {
         <div className="w-1/3 bg-white rounded-2xl shadow p-6">
           <h2 className="text-2xl font-bold mb-2">WarayTranscribe AI</h2>
           <p className="text-gray-600 mb-4">
-            Your Instant Waray-Waray to English AI Translator
+            Your Instant English to Waray-Waray AI Translator
           </p>
           <p className="text-gray-600 mb-4">
             Bridge language barriers effortlessly with WarayTranscribe AI. Our
             advanced chatbot provides accurate, real-time translations from
-            Waray-Waray to English, helping you connect, learn, and communicate
+            English to Waray-Waray, helping you connect, learn, and communicate
             with ease.
           </p>
           <h3 className="font-semibold mb-2">Key Features</h3>
