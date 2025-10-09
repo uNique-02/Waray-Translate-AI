@@ -1,38 +1,30 @@
 import ChatSection from "../components/ChatSection";
 import { MessageSquare, Settings } from "lucide-react";
+import Navbar from "../components/navbar";
+import Sidebar from "../components/Sidebar";
+import InfoSection from "../components/InfoSection";
+import { useState } from "react";
 
 export default function WarayTranscribeApp({ enableChat = true }) {
+  const [showInfo, setShowInfo] = useState(false);
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
       {/* Header / Navbar */}
-      <header className="flex items-center justify-between p-4 border-b border-gray-300 bg-white">
-        <div className="flex items-center space-x-6">
-          <span className="text-blue-500 font-bold text-xl">
-            WarayTranscribe AI
-          </span>
-          <nav className="flex space-x-6 text-gray-600">
-            <a href="/" className="hover:text-black">
-              Home
-            </a>
-            <a href="/new" className="hover:text-black">
-              About
-            </a>
-          </nav>
-        </div>
-        <div className="flex space-x-4">
-          <button className="p-2 border rounded-md hover:bg-gray-50">
-            <MessageSquare size={20} />
-          </button>
-          <button className="p-2 border rounded-md hover:bg-gray-50">
-            <Settings size={20} />
-          </button>
-        </div>
+      <header className="backdrop-blur-md bg-white/70 border-b border-gray-200/50 shadow-sm sticky top-0 z-50">
+        <Navbar />
       </header>
 
-      {/* Chat Section */}
-      <main className="flex-1 flex justify-center items-center p-6">
-        <ChatSection enableChat={enableChat} />
-      </main>
+      {/* Main Layout */}
+      <div className="flex flex-1 max-w-7xl mx-auto w-full">
+        {/* Sidebar */}
+        <Sidebar showInfo={showInfo} setShowInfo={setShowInfo} />{" "}
+        {/* Content Area */}
+        <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6">
+          {/* Info Section */}
+          <InfoSection showInfo={showInfo} />
+          <ChatSection enableChat={enableChat} />
+        </main>
+      </div>
     </div>
   );
 }

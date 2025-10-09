@@ -1,9 +1,58 @@
-import ChatSection from "../components/ChatSection";
-import { MessageSquare, Settings } from "lucide-react";
+import { useState } from "react";
+import {
+  MessageSquare,
+  Settings,
+  Info,
+  Sparkles,
+  Send,
+  Menu,
+  X,
+} from "lucide-react";
 import { Link } from "react-router-dom";
+import Navbar from "../components/navbar";
+import Sidebar from "../components/Sidebar";
+import InfoSection from "../components/InfoSection";
+// Mock ChatSection component
+const ChatSection = ({ messageProps }) => {
+  return (
+    <div className="flex-1 overflow-y-auto space-y-3 mb-4 px-2">
+      {messageProps.map((msg, idx) => (
+        <div
+          key={idx}
+          className={`flex ${
+            msg.from === "user" ? "justify-end" : "justify-start"
+          } animate-fade-in`}
+          style={{ animationDelay: `${idx * 0.1}s` }}
+        >
+          <div
+            className={`max-w-xs md:max-w-md rounded-2xl p-4 shadow-md ${
+              msg.from === "user"
+                ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+                : "bg-white text-gray-800 border border-gray-100"
+            }`}
+          >
+            <p className="text-sm leading-relaxed">{msg.text}</p>
+            <span
+              className={`text-xs mt-2 block ${
+                msg.from === "user" ? "text-blue-100" : "text-gray-400"
+              }`}
+            >
+              {msg.time}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function WarayTranscribeApp() {
-  let messages = [
+  const [showInfo, setShowInfo] = useState(true);
+  const [inputText, setInputText] = useState("");
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const messages = [
     { from: "user", text: "Good day! How are you?", time: "10:00 AM" },
     { from: "bot", text: "Maupay nga adlaw! Kumusta ka?", time: "10:00 AM" },
     {
@@ -39,81 +88,100 @@ export default function WarayTranscribeApp() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
+      <style>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Header */}
-      <header className="flex justify-between items-center p-4 border-b bg-white shadow-sm">
-        <div className="flex items-center space-x-6">
-          <span className="text-blue-500 font-bold text-xl">
-            WarayTranscribe AI
-          </span>
-          <nav className="flex space-x-6 text-gray-600">
-            <a href="#" className="hover:text-black">
-              Home
-            </a>
-            <a href="#" className="hover:text-black">
-              About
-            </a>
-          </nav>
-        </div>
-
-        <div className="flex space-x-4">
-          {/* New Chat Button */}
-          <div className="relative group">
-            <button className="p-2 border rounded-md hover:bg-gray-50 hover:cursor-pointer">
-              <MessageSquare size={20} />
-            </button>
-            <span className="absolute left-1/2 -translate-x-1/2 -top-6 text-xs text-gray-700 opacity-0 group-hover:opacity-100 transition">
-              New
-            </span>
-          </div>
-
-          {/* Settings Button */}
-          <div className="relative group">
-            <button className="p-2 border rounded-md hover:bg-gray-50 hover:cursor-pointer">
-              <Settings size={20} />
-            </button>
-            <span className="absolute left-1/2 -translate-x-1/2 -top-6 text-xs text-gray-700 opacity-0 group-hover:opacity-100 transition">
-              Settings
-            </span>
-          </div>
-        </div>
+      <header className="backdrop-blur-md bg-white/70 border-b border-gray-200/50 shadow-sm sticky top-0 z-50">
+        <Navbar />
+        {/* Menu button (visible on mobile) */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-lg hover:bg-gray-200 transition lg:hidden"
+        >
+          {isOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </header>
 
-      {/* Main Content */}
-      <main className="flex flex-1 p-6 space-x-6">
-        {/* Left Side */}
-        <div className="w-1/3 bg-white rounded-2xl shadow p-6">
-          <h2 className="text-2xl font-bold mb-2">WarayTranscribe AI</h2>
-          <p className="text-gray-600 mb-4">
-            Your Instant English to Waray-Waray AI Translator
-          </p>
-          <p className="text-gray-600 mb-4">
-            Bridge language barriers effortlessly with WarayTranscribe AI. Our
-            advanced chatbot provides accurate, real-time translations from
-            English to Waray-Waray, helping you connect, learn, and communicate
-            with ease.
-          </p>
-          <h3 className="font-semibold mb-2">Key Features</h3>
-          <ul className="space-y-2 text-gray-700">
-            <li>⚑ Accurate Translations</li>
-            <li>⚡ Real-time Processing</li>
-            <li>🌏 Preserving Culture</li>
-          </ul>
+      {/* Main Layout */}
+      <div className="flex flex-1 max-w-7xl mx-auto w-full">
+        {/* Sidebar */}
+        <Sidebar
+          showInfo={showInfo}
+          setShowInfo={setShowInfo}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />{" "}
+        {/* Content Area */}
+        <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6">
+          {/* Info Section */}
+          <InfoSection showInfo={showInfo} />
 
-          <Link
-            to="/new"
-            className="mt-4 w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 hover:cursor-pointer flex justify-center"
-          >
-            Start Translating
-          </Link>
-        </div>
+          {/* Chat Section */}
+          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col min-h-[70vh]">
+            <div className="mb-4 pb-4 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-gray-800">Conversation</h3>
+              <p className="text-xs text-gray-500">
+                See the translation in action
+              </p>
+            </div>
 
-        <ChatSection messageProps={messages} />
-      </main>
+            <ChatSection messageProps={messages} />
+
+            {/* Input Area */}
+            <div className="mt-auto pt-4 border-t border-gray-200 opacity-50 pointer-events-none">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Type your message in English..."
+                  disabled
+                  className="flex-1 px-4 py-3 bg-white rounded-2xl border border-gray-200 outline-none transition-all text-sm"
+                />
+                <button
+                  disabled
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl 
+      flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send size={18} />
+                  <span className="hidden sm:inline">Send</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
 
       {/* Footer */}
-      <footer className="p-4 text-center text-xs text-gray-500">
-        Made with 💙
+      <footer className="backdrop-blur-md bg-white/50 border-t border-gray-200/50 p-4 mt-auto">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-sm text-gray-600">
+            Made with <span className="text-red-500 animate-pulse">❤️</span> for
+            the Waray-Waray community
+          </p>
+        </div>
       </footer>
     </div>
   );
