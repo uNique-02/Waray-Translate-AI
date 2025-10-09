@@ -6,13 +6,23 @@ import {
   Sparkles,
   Send,
   Plus,
+  Menu,
+  X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function Navbar() {
+export default function Navbar({ isOpen, setIsOpen }) {
   return (
     <div className="flex justify-between items-center p-4 max-w-7xl mx-auto">
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-4">
+        {/* Menu button (visible on mobile) */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-lg hover:bg-gray-200 transition lg:hidden"
+        >
+          {isOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl blur-sm opacity-75"></div>

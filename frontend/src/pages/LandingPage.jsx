@@ -114,14 +114,7 @@ export default function WarayTranscribeApp() {
 
       {/* Header */}
       <header className="backdrop-blur-md bg-white/70 border-b border-gray-200/50 shadow-sm sticky top-0 z-50">
-        <Navbar />
-        {/* Menu button (visible on mobile) */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg hover:bg-gray-200 transition lg:hidden"
-        >
-          {isOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
       </header>
 
       {/* Main Layout */}
