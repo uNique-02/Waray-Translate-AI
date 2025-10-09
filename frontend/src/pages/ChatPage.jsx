@@ -1,6 +1,6 @@
 import ChatSection from "../components/ChatSection";
 import { MessageSquare, Settings } from "lucide-react";
-import Navbar from "../components/navbar";
+import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import InfoSection from "../components/InfoSection";
 import { useState } from "react";

@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/navbar";
+import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import InfoSection from "../components/InfoSection";
 // Mock ChatSection component
