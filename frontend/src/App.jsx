@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import WarayTranscribeApp from "./pages/LandingPage";
-import ChatPage from "./pages/ChatPage";
+import ChatPage from "./components/ChatSection2";
 
 function App() {
   return (

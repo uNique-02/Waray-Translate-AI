@@ -9,7 +9,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Navbar({ isOpen, setIsOpen }) {
   return (
@@ -71,12 +71,15 @@ export default function Navbar({ isOpen, setIsOpen }) {
       </Link>
 
       {/* Desktop: Full button */}
-      <Link
-        to="/new"
-        className="hidden sm:block px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:scale-105 transition-all"
-      >
-        Get Started
-      </Link>
+      {/* Show button only when in root path */}
+      {location.pathname === "/" && (
+        <Link
+          to="/new"
+          className="hidden sm:block px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:scale-105 transition-all"
+        >
+          Get Started
+        </Link>
+      )}
     </div>
   );
 }

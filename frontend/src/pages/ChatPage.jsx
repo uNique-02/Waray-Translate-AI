@@ -21,7 +21,7 @@ export default function WarayTranscribeApp({ enableChat = true }) {
         {/* Sidebar */}
         <Sidebar showInfo={showInfo} setShowInfo={setShowInfo} />{" "}
         {/* Content Area */}
-        <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6">
+        <main className="flex flex-col lg:flex-row flex-1 py-6 gap-6">
           {/* Info Section */}
           <InfoSection showInfo={showInfo} />
           <ChatSection enableChat={enableChat} />
