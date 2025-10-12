@@ -43,7 +43,7 @@ const useUserStore = create((set, get) => ({
         password,
       });
       console.log("Response: ", response.data.user);
-      set({ user: response.data.user });
+      set({ user: response.data.user, checkingAuth: false });
       return {
         success: true,
         message: response.data.message || "Login successful!",

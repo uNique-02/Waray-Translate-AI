@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import connectToMongoDB from "./lib/connectToMongoDB.js";
 import aiRoutes from "./routes/ai.routes.js";
 import authRoutes from "./routes/auth.route.js";
+import chatRoutes from "./routes/chat.routes.js";
+import messageRoutes from "./routes/message.routes.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -25,6 +27,8 @@ app.use(cookieParser());
 
 app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/chats", chatRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Production: serve frontend
 if (process.env.NODE_ENV === "production") {

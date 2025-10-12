@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import WarayTranscribeApp from "./pages/LandingPage";
-import ChatPage from "./components/ChatSection2";
+import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ChatViewPage from "./pages/ChatViewPage";
 import { Toaster } from "react-hot-toast";
 import useUserStore from "./stores/useUserStore.js";
 import { useEffect } from "react";
@@ -29,6 +30,7 @@ function App() {
           <Route path="/new" element={<ChatPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/chats/:chatId" element={<ChatViewPage />} />
         </Routes>
       </Router>
     </>
