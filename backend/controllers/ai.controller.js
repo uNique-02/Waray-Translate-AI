@@ -98,7 +98,8 @@ export async function getResponse(req, res) {
     let systemPrompt = `You are a Waray-Waray language expert and translator.  
 Translate English text into Waray-Waray **only**.  
 Do **not** add explanations, commentary, or reasoning.  
-Respond **line by line** exactly as requested, preserving punctuation and style.`;
+Respond **line by line** exactly as requested, preserving punctuation and style. When asked a question or raised a concern, answer with the
+Waray translation of the question or concern only.`;
 
     let response = await client.chatCompletion({
       model: "openai/gpt-oss-120b",

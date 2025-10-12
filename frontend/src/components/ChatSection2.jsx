@@ -14,8 +14,9 @@ import Sidebar from "../components/Sidebar";
 import InfoSection from "../components/InfoSection";
 import { useEffect } from "react";
 import useAiStore from "../stores/aiStore";
+
 // Mock ChatSection component
-const ChatSection = ({ messageProps }) => {
+const ChatSection = ({ messageProps, loading }) => {
   return (
     <div className="flex-1 overflow-y-auto space-y-3 mb-4 px-2">
       {messageProps.map((msg, idx) => (
@@ -37,6 +38,23 @@ const ChatSection = ({ messageProps }) => {
           <span className="text-xs text-gray-400 mt-1.5 px-2">{msg.time}</span>
         </div>
       ))}
+      {loading && (
+        <div className="flex items-start space-x-2 animate-fade-in">
+          <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
+            <div className="flex space-x-2">
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+              <div
+                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                style={{ animationDelay: "0.1s" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                style={{ animationDelay: "0.2s" }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -47,8 +65,8 @@ export default function WarayTranscribeApp({
 }) {
   const [showInfo, setShowInfo] = useState(false);
   const [inputText, setInputText] = useState("");
-
   const [isOpen, setIsOpen] = useState(false);
+  const [showChats, setShowChats] = useState(false);
 
   const [messages, setMessages] = useState(messageProps);
   const [input, setInput] = useState("");
@@ -56,6 +74,15 @@ export default function WarayTranscribeApp({
   const response = useAiStore((state) => state.response);
   const fetchResponse = useAiStore((state) => state.fetchResponse);
   const loading = useAiStore((state) => state.loading);
+
+  const currentYear = new Date().getFullYear();
+
+  // Mock chat history data - replace with actual data from your store/API
+  const [chats, setChats] = useState([
+    { id: 1, title: "English to Waray Translation", date: "Today, 10:30 AM" },
+    { id: 2, title: "Greeting Phrases", date: "Yesterday, 3:45 PM" },
+    { id: 3, title: "Common Expressions", date: "Oct 10, 2025" },
+  ]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -88,6 +115,18 @@ export default function WarayTranscribeApp({
     }
   };
 
+  const handleChatSelect = (chat) => {
+    console.log("Selected chat:", chat);
+    // Load the selected chat messages here
+    setShowChats(false);
+  };
+
+  const handleNewChat = () => {
+    console.log("Create new chat");
+    setMessages([]);
+    setShowChats(false);
+  };
+
   // Update messages when AI response arrives
   useEffect(() => {
     if (response) {
@@ -101,27 +140,40 @@ export default function WarayTranscribeApp({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
       <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-out forwards;
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes slide-in-from-sidebar {
+    from {
+      transform: translateX(-80px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  .animate-slide-in {
+    animation: slide-in-from-sidebar 0.3s ease-out forwards;
+  }
+`}</style>
 
       {/* Header */}
       <header className="backdrop-blur-md bg-white/70 border-b border-gray-200/50 shadow-sm sticky top-0 z-50">
@@ -130,13 +182,78 @@ export default function WarayTranscribeApp({
 
       {/* Main Layout */}
       <div className="flex flex-1 max-w-7xl mx-auto w-full">
-        {/* Sidebar */}
-        <Sidebar
-          showInfo={showInfo}
-          setShowInfo={setShowInfo}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-        />{" "}
+        {/* Sidebar and Chat List Container */}
+        <div className="flex">
+          {/* Sidebar */}
+          <Sidebar
+            showInfo={showInfo}
+            setShowInfo={setShowInfo}
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            showChats={showChats}
+            setShowChats={setShowChats}
+          />
+
+          {/* Chat List Panel - Adjacent to Sidebar */}
+          {showChats && (
+            <div className="w-80 backdrop-blur-md bg-white/95 border-r border-gray-200/50 shadow-xl animate-slide-in">
+              <div className="flex flex-col h-full">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    Chat History
+                  </h2>
+                  <button
+                    onClick={() => setShowChats(false)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Chat List - Scrollable */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                  {chats.length > 0 ? (
+                    chats.map((chat) => (
+                      <button
+                        key={chat.id}
+                        className="w-full text-left p-3 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all border border-gray-200/50"
+                        onClick={() => handleChatSelect(chat)}
+                      >
+                        <p className="text-sm font-medium text-gray-800 truncate">
+                          {chat.title}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {chat.date}
+                        </p>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <MessageSquare
+                        size={48}
+                        className="mx-auto mb-3 opacity-20"
+                      />
+                      <p className="text-sm">No chats yet</p>
+                      <p className="text-xs mt-1">Start a new conversation</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* New Chat Button */}
+                <div className="p-4 border-t border-gray-200/50">
+                  <button
+                    onClick={handleNewChat}
+                    className="w-full p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-medium hover:shadow-lg transition-all"
+                  >
+                    + New Chat
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Content Area */}
         <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6">
           {/* Info Section */}
@@ -151,7 +268,7 @@ export default function WarayTranscribeApp({
               </p>
             </div>
 
-            <ChatSection messageProps={messages} />
+            <ChatSection messageProps={messages} loading={loading} />
 
             {/* Input Area */}
             <div className="mt-auto pt-4 border-t border-gray-200">
@@ -169,7 +286,7 @@ export default function WarayTranscribeApp({
                   onClick={handleSend}
                   disabled={!enableChat || !input.trim()}
                   className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl 
-      flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition"
+                    flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition disabled:opacity-50"
                 >
                   <Send size={18} />
                   <span className="hidden sm:inline">Send</span>
@@ -184,8 +301,7 @@ export default function WarayTranscribeApp({
       <footer className="backdrop-blur-md bg-white/50 border-t border-gray-200/50 p-4 mt-auto">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-sm text-gray-600">
-            Made with <span className="text-red-500 animate-pulse">❤️</span> for
-            the Waray-Waray community
+            &copy; {currentYear} Kim Nique, Inc. All rights reserved.
           </p>
         </div>
       </footer>

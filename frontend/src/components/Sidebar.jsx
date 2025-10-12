@@ -1,6 +1,16 @@
 import { MessageSquare, Settings, Info } from "lucide-react";
+import useUserStore from "../stores/useUserStore.js";
 
-export default function Sidebar({ showInfo, setShowInfo, isOpen, setIsOpen }) {
+export default function Sidebar({
+  showInfo,
+  setShowInfo,
+  isOpen,
+  setIsOpen,
+  showChats,
+  setShowChats,
+}) {
+  const { user, logout } = useUserStore();
+
   return (
     <div
       className={`fixed top-30 left-0shadow-lg transform transition-transform duration-300 z-40
@@ -26,15 +36,27 @@ export default function Sidebar({ showInfo, setShowInfo, isOpen, setIsOpen }) {
           </span>
         </div>
 
-        {/* New Chat Button */}
-        <div className="relative group">
-          <button className="p-3 rounded-xl bg-white hover:bg-gray-50 text-gray-700 shadow-sm hover:shadow-md transition-all">
-            <MessageSquare size={20} />
-          </button>
-          <span className="absolute left-20 top-3 text-xs font-medium text-gray-700 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-10">
-            New Chat
-          </span>
-        </div>
+        {/* Chat List Toggle Button */}
+        {user && (
+          <div className="relative group">
+            <button
+              onClick={() => {
+                setShowChats(!showChats);
+                setIsOpen(false); // Close sidebar on mobile after selection
+              }}
+              className={`p-3 rounded-xl transition-all duration-300 ${
+                showChats
+                  ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105"
+                  : "bg-white hover:bg-gray-50 text-gray-700 shadow-sm hover:shadow-md"
+              }`}
+            >
+              <MessageSquare size={20} />
+            </button>
+            <span className="absolute left-20 top-3 text-xs font-medium text-gray-700 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-10">
+              {showChats ? "Hide Chats" : "Show Chats"}
+            </span>
+          </div>
+        )}
 
         {/* Settings Button */}
         <div className="relative group">

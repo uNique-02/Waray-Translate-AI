@@ -1,8 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 // import cookieParser from "cookie-parser";
 import connectToMongoDB from "./lib/connectToMongoDB.js";
 import aiRoutes from "./routes/ai.routes.js";
+import authRoutes from "./routes/auth.route.js";
+
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -18,14 +21,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json({ limit: "50mb" }));
-// app.use(cookieParser());
+app.use(cookieParser());
 
-// // API Routes
-// app.use("/api/projects", projectRoutes);
-// app.use("/api/blogs", blogRoutes);
-// app.use("/api/subscriber", subscriberRoutes);
-// app.use("/api/contact", contactRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/auth", authRoutes);
 
 // Production: serve frontend
 if (process.env.NODE_ENV === "production") {

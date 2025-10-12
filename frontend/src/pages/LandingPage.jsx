@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import InfoSection from "../components/InfoSection";
+import useUserStore from "../stores/useUserStore.js";
+
 // Mock ChatSection component
 const ChatSection = ({ messageProps }) => {
   return (
@@ -51,6 +53,8 @@ export default function WarayTranscribeApp() {
   const [inputText, setInputText] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const currentYear = new Date().getFullYear();
 
   const messages = [
     { from: "user", text: "Good day! How are you?", time: "10:00 AM" },
@@ -171,8 +175,9 @@ export default function WarayTranscribeApp() {
       <footer className="backdrop-blur-md bg-white/50 border-t border-gray-200/50 p-4 mt-auto">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-sm text-gray-600">
-            Made with <span className="text-red-500 animate-pulse">❤️</span> for
-            the Waray-Waray community
+            {/* Made with <span className="text-red-500 animate-pulse">❤️</span> for
+            the Waray-Waray community */}
+            &copy; {currentYear} Kim Nique, Inc. All rights reserved.
           </p>
         </div>
       </footer>
