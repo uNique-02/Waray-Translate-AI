@@ -4,6 +4,8 @@ import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ChatViewPage from "./pages/ChatViewPage";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
+
 import { Toaster } from "react-hot-toast";
 import useUserStore from "./stores/useUserStore.js";
 import { useEffect } from "react";
@@ -31,6 +33,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/chats/:chatId" element={<ChatViewPage />} />
+
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </>

@@ -42,7 +42,7 @@ const useUserStore = create((set, get) => ({
         email,
         password,
       });
-      console.log("Response: ", response.data.user);
+      console.log("USER HAS LOGGED IN ", response.data.user);
       set({ user: response.data.user, checkingAuth: false });
       return {
         success: true,

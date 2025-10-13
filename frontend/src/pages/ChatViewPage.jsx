@@ -17,32 +17,31 @@ import useAiStore from "../stores/aiStore";
 import useUserStore from "../stores/useUserStore";
 import useChatStore from "../stores/chatStore";
 import useMessageStore from "../stores/messageStore";
+import React from "react";
 
 // Mock ChatSection component
 const ChatSection = ({ messageProps, loading }) => {
-  const fetchMessages = useMessageStore((state) => state.fetchMessages);
+  // const fetchMessages = useMessageStore((state) => state.fetchMessages);
   const messages = useMessageStore((state) => state.messages);
 
-  useEffect(() => {
-    fetchMessages(currentChat._id);
-    messageProps = messages;
-  });
+  // useEffect(() => {
+  //   fetchMessages(currentChat._id);
+  //   messageProps = messages;
+  // });
+
+  console.log("CHAT MESSAGES: ", messages);
 
   return (
     <div className="flex-1 overflow-y-auto space-y-3 mb-4 px-2">
       {messageProps.map((msg, idx) => (
-        <>
+        <React.Fragment key={idx}>
           <div
-            key={idx}
-            className={`flex flex-col 
-            "items-end" animate-slide-up`}
+            key={`q-${idx}`}
+            className="flex flex-col items-end animate-slide-up"
           >
             <div
-              className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md ${
-                msg.from === "user"
-                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
-                  : "bg-white text-gray-800 rounded-bl-md border border-gray-100"
-              }`}
+              className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
+                  `}
             >
               <p className="text-sm leading-relaxed">{msg.query}</p>
             </div>
@@ -50,16 +49,15 @@ const ChatSection = ({ messageProps, loading }) => {
               {msg.updatedAt}
             </span>
           </div>
+
           <div
-            key={idx}
-            className={`flex flex-col items-start animate-slide-up`}
+            key={`r-${idx}`}
+            className="flex flex-col items-start animate-slide-up"
           >
             <div
-              className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md ${
-                msg.from === "user"
-                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
-                  : "bg-white text-gray-800 rounded-bl-md border border-gray-100"
-              }`}
+              className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md 
+                  "bg-white text-gray-800 rounded-bl-md border border-gray-100"
+              `}
             >
               <p className="text-sm leading-relaxed">{msg.response}</p>
             </div>
@@ -67,8 +65,9 @@ const ChatSection = ({ messageProps, loading }) => {
               {msg.updatedAt}
             </span>
           </div>
-        </>
+        </React.Fragment>
       ))}
+
       {loading && (
         <div className="flex items-start space-x-2 animate-fade-in">
           <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
@@ -120,8 +119,18 @@ export default function ChatViewPage({
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
 
   useEffect(() => {
-    if (user) fetchChats(user._id);
+    console.log("Chat View page mounted, current user:", user);
+    if (user) {
+      console.log("Logged in as ", user);
+    } else {
+      console.log("User not logged in. Working as guest.");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) fetchChats(user._id || user.id);
   }, []);
+
   if (user) {
     useEffect(() => {
       if (user) console.log("User Chats:", user.chats);
@@ -175,7 +184,9 @@ export default function ChatViewPage({
   const handleChatSelect = (chat) => {
     console.log("Selected chat:", chat);
     setCurrentChat(chat);
-    navigate(`/chats/${chat._id}`); // ✅ redirect to the chat view
+    setMessages(chat.messages);
+    navigate(`/chats/${chat._id || chat.id}`);
+    // ✅ redirect to the chat view
 
     // Load the selected chat messages here
     // setShowChats(false);

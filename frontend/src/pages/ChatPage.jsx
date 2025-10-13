@@ -22,25 +22,30 @@ import useMessageStore from "../stores/messageStore";
 const ChatSection = ({ messageProps, loading }) => {
   return (
     <div className="flex-1 overflow-y-auto space-y-3 mb-4 px-2">
-      {messageProps.map((msg, idx) => (
-        <div
-          key={idx}
-          className={`flex flex-col ${
-            msg.from === "user" ? "items-end" : "items-start"
-          } animate-slide-up`}
-        >
+      {messageProps
+        .filter((msg) => msg.text && msg.text.trim() !== "")
+        .map((msg, idx) => (
           <div
-            className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md ${
-              msg.from === "user"
-                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
-                : "bg-white text-gray-800 rounded-bl-md border border-gray-100"
-            }`}
+            key={idx}
+            className={`flex flex-col ${
+              msg.from === "user" ? "items-end" : "items-start"
+            } animate-slide-up`}
           >
-            <p className="text-sm leading-relaxed">{msg.text}</p>
+            <div
+              className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md ${
+                msg.from === "user"
+                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
+                  : "bg-white text-gray-800 rounded-bl-md border border-gray-100"
+              }`}
+            >
+              <p className="text-sm leading-relaxed">{msg.text}</p>
+            </div>
+            <span className="text-xs text-gray-400 mt-1.5 px-2">
+              {msg.time}
+            </span>
           </div>
-          <span className="text-xs text-gray-400 mt-1.5 px-2">{msg.time}</span>
-        </div>
-      ))}
+        ))}
+
       {loading && (
         <div className="flex items-start space-x-2 animate-fade-in">
           <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
@@ -71,7 +76,7 @@ export default function WarayTranscribeApp({
   const [isOpen, setIsOpen] = useState(false);
   const [showChats, setShowChats] = useState(false);
 
-  const [messages, setMessages] = useState(messageProps);
+  const [messages, setMessages] = useState([messageProps]);
   const [input, setInput] = useState("");
 
   const checkingAuth = useUserStore((state) => state.checkingAuth);
@@ -90,6 +95,7 @@ export default function WarayTranscribeApp({
 
   const chats = useChatStore((state) => state.chats);
   const currentChat = useChatStore((state) => state.currentChat);
+
   const createChat = useChatStore((state) => state.createChat);
   const fetchChats = useChatStore((state) => state.fetchChats);
 
@@ -185,13 +191,25 @@ export default function WarayTranscribeApp({
   const pendingQueryRef = useRef(null);
 
   useEffect(() => {
-    if (user) fetchChats(user._id);
+    console.log("Chat page mounted, current user:", user);
+    if (user) {
+      console.log("Logged in as ", user);
+    } else {
+      console.log("User not logged in. Working as guest.");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) fetchChats(user.id || user._id);
+    setMessages([]);
   }, []);
+
   if (user) {
     useEffect(() => {
       if (user) console.log("User Chats:", user.chats);
     }, []);
   }
+
   useEffect(() => {
     if (user) console.log("Current Chat:", currentChat);
   }, [currentChat]);
@@ -258,6 +276,13 @@ export default function WarayTranscribeApp({
 
     sendToBackend();
 
+    if (!user) {
+      setMessages((prev) => [
+        ...prev,
+        { from: "bot", text: response, time: getCurrentTime() },
+      ]);
+    }
+
     return () => {
       cancelled = true;
     };
@@ -288,17 +313,21 @@ export default function WarayTranscribeApp({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       // handleSend();
-      if (user) {
-        handleSendMessage();
-      } else {
-        handleSend();
-      }
+      // if (user) {
+      //   handleSendMessage();
+      // } else {
+      //   handleSend();
+      // }
+      handleSendMessage();
     }
   };
 
   const handleChatSelect = (chat) => {
     console.log("Selected chat:", chat);
-    navigate(`/chats/${chat._id}`); // ✅ redirect to the chat view
+    setCurrentChat(chat);
+    navigate(`/chats/${chat._id || chat.id}`);
+    // ✅ redirect to the chat view
+
     // Load the selected chat messages here
     // setShowChats(false);
   };
@@ -454,13 +483,14 @@ export default function WarayTranscribeApp({
                     className="flex-1 px-4 py-3 bg-white rounded-2xl border border-gray-200 outline-none transition-all text-sm"
                   />
                   <button
-                    onClick={() => {
-                      if (user) {
-                        handleSendMessage();
-                      } else {
-                        handleSend();
-                      }
-                    }}
+                    onClick={handleSendMessage}
+                    // {() => {
+                    //   if (user) {
+                    //     handleSendMessage();
+                    //   } else {
+                    //     handleSend();
+                    //   }
+                    // }}
                     disabled={!enableChat || !input.trim()}
                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl 
                     flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition disabled:opacity-50"

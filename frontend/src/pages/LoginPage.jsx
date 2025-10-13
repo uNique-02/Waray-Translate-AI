@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import useUserStore from "../stores/useUserStore.js";
@@ -18,7 +18,7 @@ export default function AuthForm() {
 
   const [focusedInput, setFocusedInput] = useState(null);
 
-  const { login } = useUserStore();
+  const { user, checkingAuth, login } = useUserStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,8 +28,8 @@ export default function AuthForm() {
     try {
       const { success, message } = await login(formData);
       if (success) {
+        console.log("CONFIRMING USER LOGGED IN", user);
         toast.success(message);
-        navigate(from, { replace: true });
       } else {
         toast.error(message);
       }
@@ -38,6 +38,12 @@ export default function AuthForm() {
       console.error("Login error:", err);
     }
   };
+
+  useEffect(() => {
+    if (!checkingAuth && user) {
+      navigate(from, { replace: true });
+    }
+  }, [checkingAuth, user]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-8 relative overflow-hidden">

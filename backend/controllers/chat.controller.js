@@ -56,6 +56,7 @@ export const createChat = async (userId, message) => {
 export const getUserChats = async (req, res) => {
   try {
     const { userId } = req.query;
+    console.log("USER iD: ", userId);
     const chats = await Chat.find({ user: userId }).populate("messages");
     console.log("USER CHATS", chats);
     res.status(200).json(chats);

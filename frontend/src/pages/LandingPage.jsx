@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MessageSquare,
   Settings,
@@ -55,6 +55,17 @@ export default function WarayTranscribeApp() {
   const [isOpen, setIsOpen] = useState(false);
 
   const currentYear = new Date().getFullYear();
+
+  const { user, logout } = useUserStore();
+
+  useEffect(() => {
+    console.log("Landing page mounted, current user:", user);
+    if (user) {
+      console.log("Logged in as ", user);
+    } else {
+      console.log("User not logged in. Working as guest.");
+    }
+  }, [user]);
 
   const messages = [
     { from: "user", text: "Good day! How are you?", time: "10:00 AM" },
