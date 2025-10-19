@@ -8,7 +8,7 @@ export const protectRoute = (req, res, next) => {
   if (!req.cookies.accessToken) {
     console.log("No access token in cookies");
   }
-  console.log("Cookies:", req.cookies);
+  // console.log("Cookies:", req.cookies);
   const token =
     req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
@@ -20,12 +20,12 @@ export const protectRoute = (req, res, next) => {
     if (err) {
       return res.status(403).json({ message: "Forbidden" });
     }
-    console.log("Decoded token:", decoded);
+    // console.log("Decoded token:", decoded);
 
     try {
       const user = await User.findById(decoded.id).select("-password"); // optional: omit sensitive fields
       if (!user) {
-        console.log("Decoded token again:", decoded);
+        // console.log("Decoded token again:", decoded);
         return res.status(404).json({ message: "Auth User not found" });
       }
 

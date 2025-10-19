@@ -11,6 +11,8 @@ export default function Sidebar({
 }) {
   const { user, logout } = useUserStore();
 
+  console.log("Sidebar props:", { showChats, setShowChats });
+
   return (
     <div
       className={`fixed top-30 left-0shadow-lg transform transition-transform duration-300 z-40

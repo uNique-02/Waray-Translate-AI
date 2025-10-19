@@ -3,7 +3,7 @@ import WarayTranscribeApp from "./pages/LandingPage";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import ChatViewPage from "./pages/ChatViewPage";
+import ChatViewPage2 from "./pages/ChatViewPage";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 import { Toaster } from "react-hot-toast";
@@ -32,7 +32,7 @@ function App() {
           <Route path="/new" element={<ChatPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/chats/:chatId" element={<ChatViewPage />} />
+          <Route path="/chats/:chatId" element={<ChatViewPage2 />} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

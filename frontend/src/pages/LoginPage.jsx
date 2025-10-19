@@ -4,12 +4,15 @@ import { motion } from "framer-motion";
 import useUserStore from "../stores/useUserStore.js";
 import toast from "react-hot-toast";
 import { Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
+import useAiStore from "../stores/aiStore.js";
 
 export default function AuthForm() {
   const location = useLocation();
   const isSignUp = location.pathname === "/signup";
   const navigate = useNavigate();
   const from = location.state?.from?.pathname || "/";
+
+  const reset = useAiStore((s) => s.reset);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -23,12 +26,12 @@ export default function AuthForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Redirecting to:", from);
-    console.log("Form Data:", formData);
+    // console.log("Redirecting to:", from);
+    // console.log("Form Data:", formData);
     try {
       const { success, message } = await login(formData);
       if (success) {
-        console.log("CONFIRMING USER LOGGED IN", user);
+        // console.log("CONFIRMING USER LOGGED IN", user);
         toast.success(message);
       } else {
         toast.error(message);
@@ -41,6 +44,7 @@ export default function AuthForm() {
 
   useEffect(() => {
     if (!checkingAuth && user) {
+      reset();
       navigate(from, { replace: true });
     }
   }, [checkingAuth, user]);

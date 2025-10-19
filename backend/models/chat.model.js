@@ -25,7 +25,7 @@ const chatSchema = new mongoose.Schema(
 // Cascade delete: remove messages when a chat is deleted
 chatSchema.pre("remove", async function (next) {
   const Message = mongoose.model("Message");
-  await Message.deleteMany({ chat: this._id });
+  await Message.deleteMany({ chat: this._id || this.id });
   next();
 });
 

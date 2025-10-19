@@ -11,7 +11,7 @@ import {
   Share2,
   Trash2,
 } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import InfoSection from "../components/InfoSection";
@@ -21,70 +21,8 @@ import useUserStore from "../stores/useUserStore";
 import useChatStore from "../stores/chatStore";
 import useMessageStore from "../stores/messageStore";
 import React from "react";
-// import { sendMessage } from "../../../backend/controllers/message.controller";
 
 // Mock ChatSection component
-// const ChatSection = ({ messageProps, loading }) => {
-//   return (
-//     <div className="flex-1 overflow-y-auto space-y-3 mb-4 px-2">
-//       {messageProps.map((msg, idx) => (
-//         <React.Fragment key={idx}>
-//           <div
-//             key={`q-${idx}`}
-//             className="flex flex-col items-end animate-slide-up"
-//           >
-//             <div
-//               className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
-//                   `}
-//             >
-//               <p className="text-sm leading-relaxed">{msg.query}</p>
-//             </div>
-//             <span className="text-xs text-gray-400 mt-1.5 px-2">
-//               {msg.updatedAt}
-//             </span>
-//           </div>
-
-//           {msg.response && (
-//             <div
-//               key={`r-${idx}`}
-//               className="flex flex-col items-start animate-slide-up"
-//             >
-//               <div
-//                 className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md
-//                   "bg-white text-gray-800 rounded-bl-md border border-gray-100"
-//               `}
-//               >
-//                 <p className="text-sm leading-relaxed">{msg.response}</p>
-//               </div>
-//               <span className="text-xs text-gray-400 mt-1.5 px-2">
-//                 {msg.updatedAt}
-//               </span>
-//             </div>
-//           )}
-//         </React.Fragment>
-//       ))}
-
-//       {loading && (
-//         <div className="flex items-start space-x-2 animate-fade-in">
-//           <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
-//             <div className="flex space-x-2">
-//               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-//               <div
-//                 className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-//                 style={{ animationDelay: "0.1s" }}
-//               ></div>
-//               <div
-//                 className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-//                 style={{ animationDelay: "0.2s" }}
-//               ></div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
 const ChatSection = ({ messageProps, loading }) => {
   const messagesEndRef = React.useRef(null);
 
@@ -180,7 +118,6 @@ export default function ChatViewPage({
   const loading = useAiStore((state) => state.loading);
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   const currentYear = new Date().getFullYear();
 
@@ -190,44 +127,32 @@ export default function ChatViewPage({
   const fetchChats = useChatStore((state) => state.fetchChats);
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
 
-  const [query, setQuery] = useState("");
-
   const messages = useMessageStore((s) => s.messages);
   const fetchMessages = useMessageStore((s) => s.fetchMessages);
-  const sendMessage = useMessageStore((s) => s.sendMessage);
 
-  const deleteChat = useChatStore((s) => s.deleteChat);
-
-  // useEffect(() => {
-  //   // console.log("Chat View page mounted, current user:", user);
-  //   if (user) {
-  //     console.log("Logged in as ", user);
-  //   } else {
-  //     console.log("User not logged in. Working as guest.");
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    console.log("Chat View page mounted, current user:", user);
+    if (user) {
+      console.log("Logged in as ", user);
+    } else {
+      console.log("User not logged in. Working as guest.");
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) fetchChats(user._id || user.id);
   }, []);
 
-  // if (user) {
-  //   useEffect(() => {
-  //     if (user) console.log("User Chats:", user.chats);
-  //   }, []);
-  // }
+  if (user) {
+    useEffect(() => {
+      if (user) console.log("User Chats:", user.chats);
+    }, []);
+  }
   useEffect(() => {
-    if (currentChat) {
-      fetchMessages(currentChat?._id || currentChat?.id);
-      console.log("CURRENT CHAT: ", currentChat);
-      // console.log("CURRENT MESSAGES: ", messages);
-      // if (user) console.log("Current Chat:", currentChat);
-    } else {
-      // Only redirect if not already on /new
-      if (location.pathname !== "/new") {
-        navigate("/new");
-      }
-    }
+    fetchMessages(currentChat?._id || currentChat?.id);
+    console.log("CURRENT CHAT: ", currentChat);
+    console.log("CURRENT MESSAGES: ", messages);
+    if (user) console.log("Current Chat:", currentChat);
   }, [currentChat]);
 
   const handleSend = () => {
@@ -236,22 +161,14 @@ export default function ChatViewPage({
     console.log("User Input:", input);
 
     // Add user message
-    // When user sends message
-    setUIMessages((prev) => [
-      ...prev,
-      {
-        query: input, // show immediately
-        response: "", // blank for now
-        updatedAt: getCurrentTime(),
-      },
+    setUIMessages([
+      ...uiMessages,
+      { from: "user", text: input, time: getCurrentTime() },
     ]);
 
     // Fetch AI response
-    const res = fetchResponse(input);
+    fetchResponse(input);
 
-    console.log("RESPONSE AFTER FETCH RESPONSE: ", res);
-
-    setQuery(input);
     setInput("");
   };
 
@@ -286,7 +203,10 @@ export default function ChatViewPage({
 
   const handleMenuToggle = (e, chatId) => {
     e.stopPropagation();
-    setOpenMenuId(openMenuId === chatId ? null : chatId);
+    e.preventDefault();
+    console.log("Toggling menu for chat:", chatId);
+    console.log("Current openMenuId:", openMenuId);
+    setOpenMenuId((prevId) => (prevId === chatId ? null : chatId));
   };
 
   const handleShare = (e, chat) => {
@@ -322,9 +242,10 @@ export default function ChatViewPage({
 
   const handleDeleteConfirm = () => {
     if (chatToDelete) {
-      // console.log("Deleting chat:", chatToDelete);
+      console.log("Deleting chat:", chatToDelete);
       // Add your delete logic here
-      deleteChat(chatToDelete._id || chatToDelete.id);
+      // deleteChat(chatToDelete._id || chatToDelete.id);
+
       setShowDeleteConfirm(false);
       setChatToDelete(null);
     }
@@ -341,37 +262,28 @@ export default function ChatViewPage({
       "Chatview page set bot message for use effect for response was called"
     );
     if (response) {
-      sendMessage(
-        user.id || user._id,
-        currentChat.id || currentChat._id,
-        query,
-        response
-      );
-
-      setQuery("");
-
-      // sendMessage: async ({ userId, chatId = null, query, response })
-      setUIMessages((prev) => {
-        const updated = [...prev];
-        if (updated.length > 0) {
-          updated[updated.length - 1].response = response;
-          updated[updated.length - 1].updatedAt = getCurrentTime();
-        }
-        return updated;
-      });
+      setUIMessages((prevMessages) => [
+        ...prevMessages,
+        { from: "bot", text: response, time: getCurrentTime() },
+      ]);
     }
   }, [response]);
 
   // Close menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (e) => {
       if (openMenuId !== null) {
         setOpenMenuId(null);
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    if (openMenuId !== null) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
   }, [openMenuId]);
 
   return (
@@ -409,6 +321,32 @@ export default function ChatViewPage({
   }
   .animate-slide-in {
     animation: slide-in-from-sidebar 0.3s ease-out forwards;
+  }
+
+  /* Custom Scrollbar Styles */
+  .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+  }
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+  }
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.4);
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.6);
+  }
+  
+  /* Smooth scroll behavior */
+  .overflow-y-auto {
+    scroll-behavior: smooth;
   }
 `}</style>
 
@@ -465,10 +403,10 @@ export default function ChatViewPage({
 
           {/* Chat List Panel - Adjacent to Sidebar */}
           {showChats && (
-            <div className="w-80 backdrop-blur-md bg-white/95 border-r border-gray-200/50 shadow-xl animate-slide-in">
+            <div className="w-80 backdrop-blur-md bg-white/95 border-r border-gray-200/50 shadow-xl animate-slide-in h-[calc(100vh-80px)] flex flex-col">
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200/50 flex-shrink-0">
                   <h2 className="text-lg font-semibold text-gray-800">
                     Chat History
                   </h2>
@@ -481,53 +419,57 @@ export default function ChatViewPage({
                 </div>
 
                 {/* Chat List - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0">
                   {chats.length > 0 ? (
-                    chats.map((chat) => (
-                      <div key={chat.id} className="relative group ">
-                        <button
-                          className="w-full text-left p-3 pr-10 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all border border-gray-200/50"
-                          onClick={() => handleChatSelect(chat)}
-                        >
-                          <p className="text-sm font-medium text-gray-800 truncate">
-                            {chat.title}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {chat.updatedAt}
-                          </p>
-                        </button>
+                    chats.map((chat) => {
+                      const chatId = chat._id || chat.id;
+                      return (
+                        <div key={chatId} className="relative group">
+                          <button
+                            className="w-full text-left p-3 pr-10 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all border border-gray-200/50"
+                            onClick={() => handleChatSelect(chat)}
+                          >
+                            <p className="text-sm font-medium text-gray-800 truncate">
+                              {chat.title}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {chat.updatedAt}
+                            </p>
+                          </button>
 
-                        {/* Ellipse Menu Button */}
-                        <button
-                          onClick={(e) =>
-                            handleMenuToggle(e, chat.id || chat._id)
-                          }
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreVertical size={16} className="text-gray-600" />
-                        </button>
+                          {/* Ellipse Menu Button */}
+                          <button
+                            onClick={(e) => handleMenuToggle(e, chatId)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreVertical size={16} className="text-gray-600" />
+                          </button>
 
-                        {/* Dropdown Menu */}
-                        {openMenuId === (chat.id || chat._id) && (
-                          <div className="absolute right-2 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 animate-fade-in">
-                            <button
-                              onClick={(e) => handleShare(e, chat)}
-                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                          {/* Dropdown Menu */}
+                          {openMenuId === chatId && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute right-2 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 animate-fade-in"
                             >
-                              <Share2 size={16} />
-                              Share
-                            </button>
-                            <button
-                              onClick={(e) => handleDeleteClick(e, chat)}
-                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))
+                              <button
+                                onClick={(e) => handleShare(e, chat)}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                              >
+                                <Share2 size={16} />
+                                Share
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteClick(e, chat)}
+                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <MessageSquare
@@ -541,7 +483,7 @@ export default function ChatViewPage({
                 </div>
 
                 {/* New Chat Button */}
-                <div className="p-4 border-t border-gray-200/50">
+                <div className="p-4 border-t border-gray-200/50 flex-shrink-0">
                   <button
                     onClick={handleNewChat}
                     className="w-full p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-medium hover:shadow-lg transition-all"
@@ -555,23 +497,27 @@ export default function ChatViewPage({
         </div>
 
         {/* Content Area */}
-        <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6">
+        <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6 overflow-hidden">
           {/* Info Section */}
           <InfoSection showInfo={showInfo} />
 
           {/* Chat Section */}
-          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col min-h-[70vh]">
-            <div className="mb-4 pb-4 border-b border-gray-200">
+          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col min-h-[70vh] max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="mb-4 pb-4 border-b border-gray-200 flex-shrink-0">
               <h3 className="text-lg font-bold text-gray-800">Conversation</h3>
               <p className="text-xs text-gray-500">
                 See the translation in action
               </p>
             </div>
 
-            <ChatSection messageProps={uiMessages} loading={loading} />
+            {/* ✅ Scrollable Chat Messages */}
+            <div className="flex-1 overflow-y-auto px-1">
+              <ChatSection messageProps={uiMessages} loading={loading} />
+            </div>
 
-            {/* Input Area */}
-            <div className="mt-auto pt-4 border-t border-gray-200">
+            {/* Input Area (Fixed at bottom) */}
+            <div className="pt-4 border-t border-gray-200 flex-shrink-0">
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -586,7 +532,7 @@ export default function ChatViewPage({
                   onClick={handleSend}
                   disabled={!enableChat || !input.trim()}
                   className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl 
-                    flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition disabled:opacity-50"
+            flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition disabled:opacity-50"
                 >
                   <Send size={18} />
                   <span className="hidden sm:inline">Send</span>

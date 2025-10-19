@@ -50,7 +50,7 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ message: "Failed to create message" });
     }
 
-    chat.messages.push(message._id);
+    chat.messages.push(message);
     await chat.save();
 
     res.status(201).json({ chat, message });

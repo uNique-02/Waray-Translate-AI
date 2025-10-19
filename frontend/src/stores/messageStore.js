@@ -11,9 +11,10 @@ const useMessageStore = create((set, get) => ({
   // ✅ Fetch all messages by chat
   fetchMessages: async (chatId) => {
     try {
-      console.log("CHAT ID FROM FETCHMESSAGES: ", chatId);
       set({ loading: true, error: null });
       const res = await axios.get(`/messages/${chatId}`);
+      console.log(" STORE FETCHED MESSAGES ", res.data);
+
       set({ messages: res.data, chatId, loading: false });
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -25,10 +26,18 @@ const useMessageStore = create((set, get) => ({
   },
 
   // ✅ Create a new message
-  sendMessage: async ({ userId, chatId = null, query, response }) => {
-    console.log("Store: ", userId, chatId, query, response);
+  sendMessage: async (userId, chatId = null, query, response) => {
+    // console.log("Store: ", userId, chatId, query, response);
     try {
       set({ loading: true, error: null });
+
+      console.log(`
+        PARAMETERS PASSED:
+        \n userId: ${userId}
+        \n chatId: ${chatId}
+        \n query: ${query}
+        \n response: ${response}
+        `);
 
       const res = await axios.post(`/messages/new`, {
         userId,
@@ -37,7 +46,10 @@ const useMessageStore = create((set, get) => ({
         response,
       });
 
-      console.log("RESPONSE DATA: ", res.data);
+      console.log(
+        "STORE AFTER SENDING MESSAGE, RESPONSE FROM SERVER: ",
+        res.data
+      );
 
       const { chat, message } = res.data;
 
@@ -78,7 +90,17 @@ const useMessageStore = create((set, get) => ({
   },
 
   // ♻️ Reset store (e.g., when switching chat)
-  resetMessages: () => set({ messages: [], chatId: null, error: null }),
+  // resetMessages: () => set({ messages: [], chatId: null, error: null }),
+
+  // 🔄 Full reset — clears everything in the store
+  resetAll: () =>
+    set({
+      messages: [],
+      response: null,
+      loading: false,
+      error: null,
+      chatId: null,
+    }),
 }));
 
 export default useMessageStore;

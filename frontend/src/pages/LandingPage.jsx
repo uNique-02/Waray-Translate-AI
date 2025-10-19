@@ -13,6 +13,9 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import InfoSection from "../components/InfoSection";
 import useUserStore from "../stores/useUserStore.js";
+import useChatStore from "../stores/chatStore.js";
+import useMessageStore from "../stores/messageStore.js";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // Mock ChatSection component
 const ChatSection = ({ messageProps }) => {
@@ -51,12 +54,56 @@ const ChatSection = ({ messageProps }) => {
 export default function WarayTranscribeApp() {
   const [showInfo, setShowInfo] = useState(true);
   const [inputText, setInputText] = useState("");
+  const [showChats, setShowChats] = useState(false);
+  const [uiMessages, setUIMessages] = useState([]);
+
+  const chats = useChatStore((state) => state.chats);
+  const currentChat = useChatStore((state) => state.currentChat);
+
+  const createChat = useChatStore((state) => state.createChat);
+  const fetchChats = useChatStore((state) => state.fetchChats);
+  const fetchMessages = useMessageStore((state) => state.fetchMessages);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [isOpen, setIsOpen] = useState(false);
 
   const currentYear = new Date().getFullYear();
 
   const { user, logout } = useUserStore();
+
+  const handleNewChat = () => {
+    console.log("Create new chat");
+    setUIMessages([]);
+    setShowChats(false);
+    navigate("/new");
+  };
+
+  useEffect(() => {
+    console.log("Chat View page mounted, current user:", user);
+    if (user) {
+      console.log("Logged in as ", user);
+    } else {
+      console.log("User not logged in. Working as guest.");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) fetchChats(user._id || user.id);
+  }, []);
+
+  if (user) {
+    useEffect(() => {
+      if (user) console.log("User Chats:", user.chats);
+    }, []);
+  }
+  useEffect(() => {
+    fetchMessages(currentChat?._id || currentChat?.id);
+    console.log("CURRENT CHAT: ", currentChat);
+    console.log("CURRENT MESSAGES: ", messages);
+    if (user) console.log("Current Chat:", currentChat);
+  }, [currentChat]);
 
   useEffect(() => {
     console.log("Landing page mounted, current user:", user);
@@ -140,7 +187,64 @@ export default function WarayTranscribeApp() {
           setShowInfo={setShowInfo}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
+          showChats={showChats}
+          setShowChats={setShowChats}
         />{" "}
+        {showChats && (
+          <div className="w-80 backdrop-blur-md bg-white/95 border-r border-gray-200/50 shadow-xl animate-slide-in">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Chat History
+                </h2>
+                <button
+                  onClick={() => setShowChats(!showChats)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Chat List - Scrollable */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                {chats.length > 0 ? (
+                  chats.map((chat) => (
+                    <button
+                      key={chat.id}
+                      className="w-full text-left p-3 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all border border-gray-200/50"
+                      onClick={() => handleChatSelect(chat)}
+                    >
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {chat.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{chat.date}</p>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageSquare
+                      size={48}
+                      className="mx-auto mb-3 opacity-20"
+                    />
+                    <p className="text-sm">No chats yet</p>
+                    <p className="text-xs mt-1">Start a new conversation</p>
+                  </div>
+                )}
+              </div>
+
+              {/* New Chat Button */}
+              <div className="p-4 border-t border-gray-200/50">
+                <button
+                  onClick={handleNewChat}
+                  className="w-full p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-medium hover:shadow-lg transition-all"
+                >
+                  + New Chat
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Content Area */}
         <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6">
           {/* Info Section */}

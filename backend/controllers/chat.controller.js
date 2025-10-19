@@ -7,7 +7,8 @@ import { InferenceClient } from "@huggingface/inference";
 
 export const createChat = async (userId, message) => {
   try {
-    const title = await generateTitleFromMessage(message);
+    // const title = await generateTitleFromMessage(message);
+    const title = await generateTitle(message);
 
     console.log("GENERATED TITLE: ", title);
 
@@ -20,7 +21,7 @@ export const createChat = async (userId, message) => {
 
     const chat = await Chat.create({ user: userId, title: title });
 
-    user.chats.push(chat._id);
+    user.chats.push(chat);
     await user.save();
     return chat;
   } catch (error) {
@@ -99,6 +100,31 @@ export const getChatById = async (req, res) => {
   }
 };
 
+export const deleteChat = async (req, res) => {
+  try {
+    console.log("Deleting chat with params:", req.params);
+    const { chatId } = req.params;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    // Delete related messages manually (since 'remove' middleware no longer triggers)
+    // const Message = mongoose.model("Message");
+    await Message.deleteMany({ chat: chat._id });
+
+    // Delete the chat itself
+    await Chat.deleteOne({ _id: chatId });
+
+    console.log(`Chat ${chatId} deleted successfully`);
+    return res.status(200).json({ message: "Chat deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    res.status(500).json({ error: "Server error while deleting chat" });
+  }
+};
+
 async function generateTitleFromMessage(message) {
   dotenv.config();
   const HF_TOKEN = process.env.HF_TOKEN;
@@ -110,35 +136,37 @@ async function generateTitleFromMessage(message) {
 
   const client = new InferenceClient(HF_TOKEN);
 
+  systemPrompt = `
+        You are a helpful assistant that generates short, meaningful titles from user messages.
+
+        Rules:
+        - Always produce a title of 2–4 words.
+        - No punctuation, quotes, emojis, or additional commentary.
+        - The title should describe the message's topic or intent.
+        - Return ONLY the title text.
+
+        Examples:
+        User: "Translate this to Waray: Good morning"
+        Title: "Waray Translation Request"
+
+        User: "What’s the weather today in Tacloban?"
+        Title: "Tacloban Weather Inquiry"
+
+        User: "Can you help me debug my code?"
+        Title: "Code Debugging Help"
+
+        User: "Tell me a funny story about a dog"
+        Title: "Funny Dog Story"
+        Now generate a 2–4 word title for the next message.
+              `;
+
   try {
     const response = await client.chatCompletion({
       model: "openai/gpt-oss-120b",
       messages: [
         {
           role: "system",
-          content: `
-You are a helpful assistant that generates short, meaningful titles from user messages.
-
-Rules:
-- Always produce a title of 2–4 words.
-- No punctuation, quotes, emojis, or additional commentary.
-- The title should describe the message's topic or intent.
-- Return ONLY the title text.
-
-Examples:
-User: "Translate this to Waray: Good morning"
-Title: "Waray Translation Request"
-
-User: "What’s the weather today in Tacloban?"
-Title: "Tacloban Weather Inquiry"
-
-User: "Can you help me debug my code?"
-Title: "Code Debugging Help"
-
-User: "Tell me a funny story about a dog"
-Title: "Funny Dog Story"
-Now generate a 2–4 word title for the next message.
-      `,
+          content: systemPrompt,
         },
         { role: "user", content: "Explain subnetting in simple terms" },
         {
@@ -173,6 +201,65 @@ Now generate a 2–4 word title for the next message.
     return title.trim();
   } catch (err) {
     console.error("Error generating title:", err);
+    return "Untitled Chat";
+  }
+}
+
+export async function generateTitle(message) {
+  if (!message || message.trim() === "") {
+    return res.status(400).json({ error: "Prompt is required" });
+  }
+
+  try {
+    const systemPrompt = `
+        You are a helpful assistant that generates short, meaningful titles from user messages.
+
+        Rules:
+        - Always produce a title of 2–4 words.
+        - No punctuation, quotes, emojis, or additional commentary.
+        - The title should describe the message's topic or intent.
+        - Return ONLY the title text.`;
+
+    const FIREWORKS_API_KEY = process.env.FIREWORKS_API_KEY;
+
+    const response = await fetch(
+      "https://api.fireworks.ai/inference/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${FIREWORKS_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "accounts/fireworks/models/gpt-oss-120b",
+          max_tokens: 512,
+          temperature: 0,
+          top_p: 1,
+          top_k: 40,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: message },
+          ],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Fireworks API error: ${err}`);
+    }
+
+    const data = await response.json();
+
+    const title =
+      data?.choices?.[0]?.message?.content ||
+      data?.choices?.[0]?.content ||
+      "Untitled Chat";
+
+    return title.trim();
+  } catch (err) {
+    console.error("🔥 Fireworks API Error:", err);
     return "Untitled Chat";
   }
 }

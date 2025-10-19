@@ -76,7 +76,7 @@ export default function WarayTranscribeApp({
   const [isOpen, setIsOpen] = useState(false);
   const [showChats, setShowChats] = useState(false);
 
-  const [messages, setMessages] = useState([messageProps]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
   const checkingAuth = useUserStore((state) => state.checkingAuth);
@@ -181,9 +181,11 @@ export default function WarayTranscribeApp({
   const chatId = useMessageStore((s) => s.chatId);
   const sendMessage = useMessageStore((s) => s.sendMessage);
   const messageLoading = useMessageStore((s) => s.loading);
+  const resetAll = useMessageStore((s) => s.resetAll);
 
   // ai store
   const response = useAiStore((s) => s.response);
+  const responseCount = useAiStore((s) => s.responseCount);
   const fetchResponse = useAiStore((s) => s.fetchResponse);
   const aiLoading = useAiStore((s) => s.loading);
 
@@ -191,28 +193,25 @@ export default function WarayTranscribeApp({
   const pendingQueryRef = useRef(null);
 
   useEffect(() => {
-    console.log("Chat page mounted, current user:", user);
+    resetAll();
     if (user) {
-      console.log("Logged in as ", user);
-    } else {
-      console.log("User not logged in. Working as guest.");
+      fetchChats(user.id || user._id);
+      // console.log("User Chats:", user.chats);
     }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) fetchChats(user.id || user._id);
-    setMessages([]);
   }, []);
 
-  if (user) {
-    useEffect(() => {
-      if (user) console.log("User Chats:", user.chats);
-    }, []);
-  }
+  // useEffect(() => {
+  //   console.log("Chat page mounted, current user:", user);
+  //   if (user) {
+  //     console.log("Logged in as ", user);
+  //   } else {
+  //     console.log("User not logged in. Working as guest.");
+  //   }
+  // }, [user]);
 
-  useEffect(() => {
-    if (user) console.log("Current Chat:", currentChat);
-  }, [currentChat]);
+  // useEffect(() => {
+  //   if (user) console.log("Current Chat:", currentChat);
+  // }, [currentChat]);
 
   // ---- handle send (user is authenticated)
   const handleSendMessage = async () => {
@@ -246,17 +245,23 @@ export default function WarayTranscribeApp({
 
       try {
         // Wait for sendMessage to complete.
-        if (!user || !user._id) {
+        if (!user) {
           console.error("No user found when sending message");
           return;
         }
 
+        const userId = user?._id || user?.id;
         const { chat, message } =
           (await sendMessage({
-            userId: user._id,
+            userId: userId,
             query,
             response: aiText,
           })) || {}; // <- prevents destructuring undefined
+
+        setMessages((prev) => [
+          ...prev,
+          { from: "bot", text: aiText, time: getCurrentTime() },
+        ]);
 
         if (!chat) {
           console.error("Chat not returned from backend");
@@ -266,6 +271,9 @@ export default function WarayTranscribeApp({
         console.log("Chat + message created:", chat, message);
 
         setCurrentChat(chat);
+        // ✅ Immediately set and navigate with the backend’s chat
+
+        navigate(`/chats/${chat._id}`);
       } catch (err) {
         console.error("Failed to send message to backend:", err);
       } finally {
@@ -286,21 +294,21 @@ export default function WarayTranscribeApp({
     return () => {
       cancelled = true;
     };
-  }, [response, sendMessage, user, chatId, navigate]);
+  }, [responseCount, user, chatId, navigate]);
 
-  useEffect(() => {
-    if (!chatId) return;
+  // useEffect(() => {
+  //   if (!chatId) return;
 
-    // Add bot message to UI (only once)
-    setMessages((prev) => [
-      ...prev,
-      { from: "bot", text: aiText, time: getCurrentTime() },
-    ]);
-    // If sendMessage returns chat id, navigate immediately:
-    if (chatId && !cancelled) {
-      navigate(`/chats/${chatId}`);
-    }
-  }, [chatId]);
+  //   // Add bot message to UI (only once)
+  //   setMessages((prev) => [
+  //     ...prev,
+  //     { from: "bot", text: aiText, time: getCurrentTime() },
+  //   ]);
+  //   // If sendMessage returns chat id, navigate immediately:
+  //   if (chatId && !cancelled) {
+  //     navigate(`/chats/${chatId}`);
+  //   }
+  // }, [chatId]);
 
   function getCurrentTime() {
     const now = new Date();
@@ -405,7 +413,7 @@ export default function WarayTranscribeApp({
                     Chat History
                   </h2>
                   <button
-                    onClick={() => setShowChats(false)}
+                    onClick={() => setShowChats(!showChats)}
                     className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <X size={18} />
