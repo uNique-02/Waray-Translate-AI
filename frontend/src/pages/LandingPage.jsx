@@ -93,15 +93,14 @@ export default function WarayTranscribeApp() {
     if (user) fetchChats(user._id || user.id);
   }, []);
 
-  if (user) {
-    useEffect(() => {
-      if (user) console.log("User Chats:", user.chats);
-    }, []);
-  }
+  useEffect(() => {
+    if (user) console.log("User Chats:", user.chats);
+  }, [user]);
+
   useEffect(() => {
     fetchMessages(currentChat?._id || currentChat?.id);
-    console.log("CURRENT CHAT: ", currentChat);
-    console.log("CURRENT MESSAGES: ", messages);
+    // console.log("CURRENT CHAT: ", currentChat);
+    // console.log("CURRENT MESSAGES: ", messages);
     if (user) console.log("Current Chat:", currentChat);
   }, [currentChat]);
 
