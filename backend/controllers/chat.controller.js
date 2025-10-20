@@ -88,8 +88,7 @@ export const addMessageToChat = async (req, res) => {
 export const getChatById = async (req, res) => {
   try {
     const chatId = req.params.chatId;
-    const userId = req.user._id;
-    const chat = await Chat.findOne({ _id: chatId, user: userId });
+    const chat = await Chat.findOne({ _id: chatId });
     if (!chat) {
       return res.status(404).json({ message: "Chat not found" });
     }
@@ -206,9 +205,9 @@ async function generateTitleFromMessage(message) {
 }
 
 export async function generateTitle(message) {
-  if (!message || message.trim() === "") {
-    return res.status(400).json({ error: "Prompt is required" });
-  }
+  // if (!message || message.trim() === "") {
+  //   return res.status(400).json({ error: "Prompt is required" });
+  // }
 
   try {
     const systemPrompt = `

@@ -189,6 +189,7 @@ export default function ChatViewPage({
   const createChat = useChatStore((state) => state.createChat);
   const fetchChats = useChatStore((state) => state.fetchChats);
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
+  const fetchChatById = useChatStore((state) => state.fetchChatById);
 
   const [query, setQuery] = useState("");
 
@@ -198,28 +199,28 @@ export default function ChatViewPage({
 
   const deleteChat = useChatStore((s) => s.deleteChat);
 
-  // useEffect(() => {
-  //   // console.log("Chat View page mounted, current user:", user);
-  //   if (user) {
-  //     console.log("Logged in as ", user);
-  //   } else {
-  //     console.log("User not logged in. Working as guest.");
-  //   }
-  // }, [user]);
-
   useEffect(() => {
-    if (user) fetchChats(user._id || user.id);
+    // console.error("VIEW CHAT PAGE");
+    // console.log("Current user bruh: ", user);
+    if (user) {
+      // console.log("Fetching chats upon refresh or first time access");
+      fetchChats(user._id || user.id);
+      fetchMessages(currentChat.id || currentChat._id);
+      setUIMessages(currentChat.messages);
+      fetchChatById(currentChat.id || currentChat._id);
+      // fetchMessages(currentChat?._id || currentChat?.id);
+    } else {
+      if (location.pathname !== "/new") {
+        navigate("/new");
+      }
+    }
   }, []);
 
-  // if (user) {
-  //   useEffect(() => {
-  //     if (user) console.log("User Chats:", user.chats);
-  //   }, []);
-  // }
   useEffect(() => {
     if (currentChat) {
       fetchMessages(currentChat?._id || currentChat?.id);
-      console.log("CURRENT CHAT: ", currentChat);
+      // console.log("CURRENT CHAT: ", currentChat);
+      setUIMessages(messages);
       // console.log("CURRENT MESSAGES: ", messages);
       // if (user) console.log("Current Chat:", currentChat);
     } else {
@@ -233,7 +234,7 @@ export default function ChatViewPage({
   const handleSend = () => {
     if (!input.trim()) return;
 
-    console.log("User Input:", input);
+    // console.log("User Input:", input);
 
     // Add user message
     // When user sends message
@@ -249,7 +250,7 @@ export default function ChatViewPage({
     // Fetch AI response
     const res = fetchResponse(input);
 
-    console.log("RESPONSE AFTER FETCH RESPONSE: ", res);
+    // console.log("RESPONSE AFTER FETCH RESPONSE: ", res);
 
     setQuery(input);
     setInput("");
@@ -340,17 +341,26 @@ export default function ChatViewPage({
     console.log(
       "Chatview page set bot message for use effect for response was called"
     );
-    if (response) {
-      sendMessage(
-        user.id || user._id,
-        currentChat.id || currentChat._id,
+
+    if (!response) return;
+
+    (async () => {
+      const { chat, message } = await sendMessage({
+        userId: user.id || user._id,
+        chatId: currentChat.id || currentChat._id,
         query,
-        response
-      );
+        response,
+      });
+
+      // console.log("RETRIEVED CHAT: ", chat);
+      // console.log("VS CURRENT CHAT: ", currentChat);
 
       setQuery("");
 
-      // sendMessage: async ({ userId, chatId = null, query, response })
+      await fetchMessages(currentChat.id || currentChat._id);
+
+      // console.log("FETCHED MESSAGES:", messages);
+
       setUIMessages((prev) => {
         const updated = [...prev];
         if (updated.length > 0) {
@@ -359,7 +369,7 @@ export default function ChatViewPage({
         }
         return updated;
       });
-    }
+    })();
   }, [response]);
 
   // Close menu when clicking outside
@@ -377,40 +387,40 @@ export default function ChatViewPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
       <style>{`
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-  @keyframes slide-in-from-sidebar {
-    from {
-      transform: translateX(-80px);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  .animate-slide-in {
-    animation: slide-in-from-sidebar 0.3s ease-out forwards;
-  }
-`}</style>
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fade-in {
+        animation: fade-in 0.5s ease-out forwards;
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+      }
+      .animate-float {
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes slide-in-from-sidebar {
+        from {
+          transform: translateX(-80px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .animate-slide-in {
+        animation: slide-in-from-sidebar 0.3s ease-out forwards;
+      }
+    `}</style>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (

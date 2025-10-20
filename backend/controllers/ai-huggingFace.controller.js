@@ -123,28 +123,28 @@ Waray translation of the question or concern only.`;
   }
 }
 
-export async function translatorFunction(prompt) {
-  try {
-    let systemPrompt = `You are a Waray-Waray language expert and translator.
-Translate English text into Waray-Waray **only**.
-Do **not** add explanations, commentary, or reasoning.
-Respond **line by line** exactly as requested, preserving punctuation and style. When asked a question or raised a concern, answer with the
-Waray translation of the question or concern only.`;
+// export async function translatorFunction(prompt) {
+//   try {
+//     let systemPrompt = `You are a Waray-Waray language expert and translator.
+// Translate English text into Waray-Waray **only**.
+// Do **not** add explanations, commentary, or reasoning.
+// Respond **line by line** exactly as requested, preserving punctuation and style. When asked a question or raised a concern, answer with the
+// Waray translation of the question or concern only.`;
 
-    let response = await client.chatCompletion({
-      model: "openai/gpt-oss-20b",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0,
-      max_tokens: 512,
-    });
+//     let response = await client.chatCompletion({
+//       model: "openai/gpt-oss-20b",
+//       messages: [
+//         { role: "system", content: systemPrompt },
+//         { role: "user", content: prompt },
+//       ],
+//       temperature: 0,
+//       max_tokens: 512,
+//     });
 
-    const content = response.choices[0].message.content;
-    return content;
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
-}
+//     const content = response.choices[0].message.content;
+//     return content;
+//   } catch (err) {
+//     console.error(err);
+//     return null;
+//   }
+// }

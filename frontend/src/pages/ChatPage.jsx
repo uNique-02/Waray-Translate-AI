@@ -193,7 +193,9 @@ export default function WarayTranscribeApp({
   const pendingQueryRef = useRef(null);
 
   useEffect(() => {
+    console.error("NEW CHAT PAGE");
     resetAll();
+    setMessages([]);
     if (user) {
       fetchChats(user.id || user._id);
       // console.log("User Chats:", user.chats);
@@ -294,7 +296,7 @@ export default function WarayTranscribeApp({
     return () => {
       cancelled = true;
     };
-  }, [responseCount, user, chatId, navigate]);
+  }, [responseCount]);
 
   // useEffect(() => {
   //   if (!chatId) return;

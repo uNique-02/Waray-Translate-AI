@@ -176,7 +176,7 @@ const useChatStore = create(
 
       deleteChat: async (chatId) => {
         try {
-          console.log("Chat store is called to delete chat with ID: ", chatId);
+          // console.log("Chat store is called to delete chat with ID: ", chatId);
           const res = await axios.delete(`/chats/${chatId}`);
           console.log(res.data);
           set((state) => ({
@@ -194,6 +194,32 @@ const useChatStore = create(
           }
         } catch (err) {
           console.error("Error deleting chat:", err);
+        }
+      },
+
+      fetchChatById: async (chatId) => {
+        if (!chatId) {
+          set({ error: "Chat ID is required" });
+          return null;
+        }
+
+        try {
+          set({ loading: true, error: null });
+
+          // console.log("Fetching chat with ID:", chatId);
+          const res = await axios.get(`/chats/${chatId}`);
+
+          // console.log("Fetched chat data in fetchByID:", res.data);
+
+          set({ currentChat: res.data, loading: false });
+          return res.data;
+        } catch (error) {
+          console.error("Error fetching chat by ID:", error);
+          set({
+            error: error.response?.data?.message || "Failed to fetch chat",
+            loading: false,
+          });
+          return null;
         }
       },
 

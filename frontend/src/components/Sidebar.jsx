@@ -11,7 +11,7 @@ export default function Sidebar({
 }) {
   const { user, logout } = useUserStore();
 
-  console.log("Sidebar props:", { showChats, setShowChats });
+  // console.log("Sidebar props:", { showChats, setShowChats });
 
   return (
     <div

@@ -130,30 +130,43 @@ export default function ChatViewPage({
   const messages = useMessageStore((s) => s.messages);
   const fetchMessages = useMessageStore((s) => s.fetchMessages);
 
-  useEffect(() => {
-    console.log("Chat View page mounted, current user:", user);
-    if (user) {
-      console.log("Logged in as ", user);
-    } else {
-      console.log("User not logged in. Working as guest.");
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   console.log("Chat View page mounted, current user:", user);
+  //   if (user) {
+  //     console.log("Logged in as ", user);
+  //   } else {
+  //     console.log("User not logged in. Working as guest.");
+  //   }
+  // }, [user]);
 
   useEffect(() => {
-    if (user) fetchChats(user._id || user.id);
+    console.error("VIEW CHAT PAGE");
+    console.log("Current user bruh: ", user);
+    if (user) {
+      console.log("Fetching chats upon refresh or first time access");
+      fetchChats(user._id || user.id);
+      setUIMessages(currentChat.messages);
+      // fetchMessages(currentChat?._id || currentChat?.id);
+    }
   }, []);
 
-  if (user) {
-    useEffect(() => {
-      if (user) console.log("User Chats:", user.chats);
-    }, []);
-  }
+  // if (user) {
+  //   useEffect(() => {
+  //     if (user) console.log("User Chats:", user.chats);
+  //   }, []);
+  // }
   useEffect(() => {
+    console.log("Use effect to keep track of currentChat is called.");
     fetchMessages(currentChat?._id || currentChat?.id);
-    console.log("CURRENT CHAT: ", currentChat);
-    console.log("CURRENT MESSAGES: ", messages);
+    // console.log("CURRENT CHAT: ", currentChat);
+    // console.log("CURRENT MESSAGES: ", messages);
     if (user) console.log("Current Chat:", currentChat);
+    setUIMessages(currentChat.messages);
   }, [currentChat]);
+
+  useEffect(() => {
+    if (user) console.log("User Messages", user.messages);
+  }, []);
 
   const handleSend = () => {
     if (!input.trim()) return;

@@ -20,7 +20,7 @@ const useUserStore = create((set, get) => ({
         confirmPassword,
       });
       set({ user: response.data });
-      console.log("Response data user: ", response.data);
+      // console.log("Response data user: ", response.data);
       return {
         success: true,
         message: response.data.message || "Signup successful!",
@@ -36,7 +36,7 @@ const useUserStore = create((set, get) => ({
   },
 
   login: async ({ email, password }) => {
-    console.log("Attempting login with email:", email, password);
+    // console.log("Attempting login with email:", email, password);
     try {
       const response = await apiClient.post("/auth/login", {
         email,

@@ -18,19 +18,21 @@ export const sendMessage = async (req, res) => {
       if (!chat) return res.status(404).json({ message: "Chat not found" });
     }
 
+    console.log("CHAT FOUND: ", chat);
+
     // ✅ Create message
     let message;
 
     try {
       console.log("Creating new message with data:", {
-        chatId: chat._id,
+        chatId: chat?._id || null,
         sender: userId,
         query,
         response,
       });
 
       message = await Message.create({
-        chat: chat._id,
+        chat: chat?._id || null,
         sender: userId,
         query,
         response,
@@ -52,6 +54,8 @@ export const sendMessage = async (req, res) => {
 
     chat.messages.push(message);
     await chat.save();
+
+    console.log("UPDATED CHAT AFTER NEW MESSAGE", chat);
 
     res.status(201).json({ chat, message });
   } catch (error) {

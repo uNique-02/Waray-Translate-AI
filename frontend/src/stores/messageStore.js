@@ -13,7 +13,7 @@ const useMessageStore = create((set, get) => ({
     try {
       set({ loading: true, error: null });
       const res = await axios.get(`/messages/${chatId}`);
-      console.log(" STORE FETCHED MESSAGES ", res.data);
+      // console.log(" STORE FETCHED MESSAGES ", res.data);
 
       set({ messages: res.data, chatId, loading: false });
     } catch (error) {
@@ -26,18 +26,18 @@ const useMessageStore = create((set, get) => ({
   },
 
   // ✅ Create a new message
-  sendMessage: async (userId, chatId = null, query, response) => {
+  sendMessage: async ({ userId, chatId = null, query, response }) => {
     // console.log("Store: ", userId, chatId, query, response);
     try {
       set({ loading: true, error: null });
 
-      console.log(`
-        PARAMETERS PASSED:
-        \n userId: ${userId}
-        \n chatId: ${chatId}
-        \n query: ${query}
-        \n response: ${response}
-        `);
+      // console.log(`
+      //   PARAMETERS PASSED:
+      //   \n userId: ${userId}
+      //   \n chatId: ${chatId}
+      //   \n query: ${query}
+      //   \n response: ${response}
+      //   `);
 
       const res = await axios.post(`/messages/new`, {
         userId,
@@ -53,6 +53,8 @@ const useMessageStore = create((set, get) => ({
 
       const { chat, message } = res.data;
 
+      // console.log("UPDATED CHAT: ", chat);
+
       // If chat was newly created, update chatId
       if (!chatId && chat?._id) {
         set({ chatId: chat._id });
@@ -66,6 +68,8 @@ const useMessageStore = create((set, get) => ({
 
       // set({ messages: res.data, chatId, loading: false });
 
+      // console.log("RETURNING CHAT AND MESSAGES");
+
       return { chat, message };
     } catch (error) {
       console.error("Error sending message:", error);
@@ -73,6 +77,7 @@ const useMessageStore = create((set, get) => ({
         error: error.response?.data?.message || "Failed to send message",
         loading: false,
       });
+      return null;
     }
   },
 
