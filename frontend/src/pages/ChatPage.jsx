@@ -243,7 +243,9 @@ export default function WarayTranscribeApp({
       const aiText = response;
       const query = pendingQueryRef.current;
 
-      if (!aiText || !query) return;
+      if (!pendingQueryRef.current) return;
+
+      if (!aiText || !query || query.trim() === "") return;
 
       try {
         // Wait for sendMessage to complete.

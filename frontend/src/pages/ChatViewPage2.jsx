@@ -157,7 +157,11 @@ export default function ChatViewPage({
   // }
   useEffect(() => {
     console.log("Use effect to keep track of currentChat is called.");
-    fetchMessages(currentChat?._id || currentChat?.id);
+    const id = currentChat?._id || currentChat?.id;
+
+    if (!id) return; // 🚨 prevent undefined call
+
+    fetchMessages(id);
     // console.log("CURRENT CHAT: ", currentChat);
     // console.log("CURRENT MESSAGES: ", messages);
     if (user) console.log("Current Chat:", currentChat);
@@ -272,7 +276,7 @@ export default function ChatViewPage({
   // Update messages when AI response arrives
   useEffect(() => {
     console.log(
-      "Chatview page set bot message for use effect for response was called"
+      "Chatview page set bot message for use effect for response was called",
     );
     if (response) {
       setUIMessages((prevMessages) => [
