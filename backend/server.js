@@ -7,9 +7,12 @@ import aiRoutes from "./routes/ai.routes.js";
 import authRoutes from "./routes/auth.route.js";
 import chatRoutes from "./routes/chat.routes.js";
 import messageRoutes from "./routes/message.routes.js";
+import datasetRoutes from "./routes/dataset.route.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
+
+import { createClient } from "@supabase/supabase-js";
 
 // Fix __dirname in ES module context
 const __filename = fileURLToPath(import.meta.url);
@@ -29,6 +32,31 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/dataset", datasetRoutes);
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY,
+);
+
+async function testSupabaseConnection() {
+  try {
+    const { data, error } = await supabase
+      .from("waray_dataset")
+      .select("id")
+      .limit(1);
+
+    if (error) {
+      console.error("❌ Supabase connection failed:", error.message);
+    } else {
+      console.log("✅ Supabase connected successfully");
+    }
+  } catch (err) {
+    console.error("❌ Supabase connection error:", err.message);
+  }
+}
+
+testSupabaseConnection();
 
 // Production: serve frontend
 if (process.env.NODE_ENV === "production") {
