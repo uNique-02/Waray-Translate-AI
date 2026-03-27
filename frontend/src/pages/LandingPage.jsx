@@ -73,6 +73,8 @@ export default function WarayTranscribeApp() {
 
   const { user, logout } = useUserStore();
 
+  const setCurrentChat = useChatStore((state) => state.setCurrentChat);
+
   const handleNewChat = () => {
     console.log("Create new chat");
     setUIMessages([]);
@@ -80,22 +82,23 @@ export default function WarayTranscribeApp() {
     navigate("/new");
   };
 
-  useEffect(() => {
-    console.log("Chat View page mounted, current user:", user);
-    if (user) {
-      console.log("Logged in as ", user);
-    } else {
-      console.log("User not logged in. Working as guest.");
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   console.log("Chat View page mounted, current user:", user);
+  //   if (user) {
+  //     console.log("Logged in as ", user);
+  //   } else {
+  //     console.log("User not logged in. Working as guest.");
+  //   }
+  // }, [user]);
 
   useEffect(() => {
     if (user) fetchChats(user._id || user.id);
+    console.log("CHATS: ", chats);
   }, []);
 
-  useEffect(() => {
-    if (user) console.log("User Chats:", user.chats);
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) console.log("User Chats:", user.chats);
+  // }, [user]);
 
   useEffect(() => {
     const id = currentChat?._id || currentChat?.id;
@@ -105,17 +108,14 @@ export default function WarayTranscribeApp() {
     fetchMessages(id);
     // console.log("CURRENT CHAT: ", currentChat);
     // console.log("CURRENT MESSAGES: ", messages);
-    if (user) console.log("Current Chat:", currentChat);
+    if (user && currentChat) console.log("Current Chat:", currentChat);
   }, [currentChat]);
 
-  useEffect(() => {
-    console.log("Landing page mounted, current user:", user);
-    if (user) {
-      console.log("Logged in as ", user);
-    } else {
-      console.log("User not logged in. Working as guest.");
-    }
-  }, [user]);
+  const handleChatSelect = (chat) => {
+    const id = chat._id || chat.id;
+    setCurrentChat(chat);
+    navigate(`/chats/${id}`); // urlChatId change triggers the load effect
+  };
 
   const messages = [
     { from: "user", text: "Good day! How are you?", time: "10:00 AM" },
@@ -214,7 +214,7 @@ export default function WarayTranscribeApp() {
                 {chats.length > 0 ? (
                   chats.map((chat) => (
                     <button
-                      key={chat.id}
+                      key={chat._id}
                       className="w-full text-left p-3 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all border border-gray-200/50"
                       onClick={() => handleChatSelect(chat)}
                     >

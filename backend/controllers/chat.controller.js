@@ -10,7 +10,7 @@ export const createChat = async (userId, message) => {
     // const title = await generateTitleFromMessage(message);
     const title = await generateTitle(message);
 
-    console.log("GENERATED TITLE: ", title);
+    // console.log("GENERATED TITLE: ", title);
 
     // Find the user and push the chat reference
     const user = await User.findById(userId);
@@ -241,7 +241,7 @@ export async function generateTitle(message) {
             { role: "user", content: message },
           ],
         }),
-      }
+      },
     );
 
     if (!response.ok) {

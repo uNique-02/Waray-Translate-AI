@@ -33,9 +33,10 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const picture = `https://avatar.iran.liara.run/public/boy?username=${name
-      .trim()
-      .replace(/\s+/g, "")}`;
+    console.log("NAME: ", name);
+
+    // UI Avatars - generates initials-based avatars (no external dependency issues)
+    const picture = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
     const newUser = new User({
       name: name,
@@ -83,12 +84,12 @@ export const login = async (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
-    console.log("Login attempt with email:", email, password);
+    // console.log("Login attempt with email:", email, password);
 
     // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      console.log("No user found with email:", email);
+      // console.log("No user found with email:", email);
       return res
         .status(400)
         .json({ message: "User does not exist. Please try again." });
@@ -97,15 +98,15 @@ export const login = async (req, res) => {
     // Check if password is correct
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      console.log("Password mismatch for user:", email);
+      // console.log("Password mismatch for user:", email);
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
     // Generate tokens and save refresh token
     const { accessToken, refreshToken } = await generateTokens(user);
-    console.log("Generated tokens for user:", user._id);
-    console.log("Access Token:", accessToken);
-    console.log("Refresh Token:", refreshToken);
+    // console.log("Generated tokens for user:", user._id);
+    // console.log("Access Token:", accessToken);
+    // console.log("Refresh Token:", refreshToken);
     await saveRefreshToken(user._id, refreshToken);
 
     // Set cookies
@@ -124,7 +125,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("What the fuck is going on here");
+    // console.log("What the fuck is going on here");
     console.error("Login Error:", error);
     res.status(500).json({
       message: "Server error. Please try again later.",
@@ -146,7 +147,7 @@ export const logout = async (req, res) => {
     try {
       const decoded = jwt.verify(
         refreshToken,
-        process.env.REFRESH_TOKEN_SECRET
+        process.env.REFRESH_TOKEN_SECRET,
       );
       userId = decoded.id;
     } catch (err) {
@@ -170,7 +171,7 @@ export const logout = async (req, res) => {
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
-    console.log("Cookies after clearing:", res.getHeaders());
+    // console.log("Cookies after clearing:", res.getHeaders());
     res.status(201).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout Error:", error);
@@ -211,7 +212,7 @@ export const refreshToken = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: ACCESS_TOKEN_EXPIRY,
-      }
+      },
     );
 
     res.cookie("accessToken", accessToken, {
@@ -230,9 +231,9 @@ export const refreshToken = async (req, res) => {
 
 export const getProfile = async (req, res) => {
   try {
-    console.log("REQUEST: ", req);
+    // console.log("REQUEST: ", req);
     res.json(req.user);
-    console.log("USER REQUEST: ", req.user);
+    // console.log("USER REQUEST: ", req.user);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -248,7 +249,7 @@ const REDIRECT_URI = "postmessage";
 const client = new OAuth2Client(
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI
+  REDIRECT_URI,
 );
 
 export const googleAuth = async (req, res) => {
@@ -284,7 +285,7 @@ export const googleAuth = async (req, res) => {
     const payload = ticket.getPayload();
     const { sub, email, name, picture } = payload; // Destructure for clarity
 
-    console.log("Google Auth Payload (from verified ID Token):", payload);
+    // console.log("Google Auth Payload (from verified ID Token):", payload);
 
     if (!email) {
       return res
@@ -304,7 +305,7 @@ export const googleAuth = async (req, res) => {
         isGoogleUser: true, // Mark as Google user
       });
 
-      console.log("Creating new user:", user);
+      // console.log("Creating new user:", user);
       await user.save();
     }
 

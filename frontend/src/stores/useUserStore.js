@@ -42,7 +42,7 @@ const useUserStore = create((set, get) => ({
         email,
         password,
       });
-      console.log("USER HAS LOGGED IN ", response.data.user);
+      // console.log("USER HAS LOGGED IN ", response.data.user);
       set({ user: response.data.user, checkingAuth: false });
       return {
         success: true,
@@ -102,7 +102,7 @@ const useUserStore = create((set, get) => ({
       console.error("Google Auth error:", error);
 
       toast.error(
-        error.response?.data?.message || "Google authentication failed."
+        error.response?.data?.message || "Google authentication failed.",
       );
     }
   },

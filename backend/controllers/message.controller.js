@@ -8,17 +8,17 @@ export const sendMessage = async (req, res) => {
     const params = req.body;
     const { userId, chatId, query, response } = req.body;
     let chat;
-    console.log("PARAMETERS: ", userId, query);
+    // console.log("PARAMETERS: ", userId, query);
     if (!chatId) {
       // ✅ Create chat using function from chatController
       chat = await createChat(userId, query);
-      console.log("CHAT: ", chat);
+      // console.log("CHAT: ", chat);
     } else {
       chat = await Chat.findById(chatId);
       if (!chat) return res.status(404).json({ message: "Chat not found" });
     }
 
-    console.log("CHAT FOUND: ", chat);
+    // console.log("CHAT FOUND: ", chat);
 
     // ✅ Create message
     let message;
@@ -38,13 +38,13 @@ export const sendMessage = async (req, res) => {
         response,
       });
 
-      console.log("Message successfully created:", message);
+      // console.log("Message successfully created:", message);
     } catch (error) {
       console.error("Error creating message:", error);
       throw error; // rethrow to outer catch
     }
 
-    console.log("MESSAGE ", message);
+    // console.log("MESSAGE ", message);
 
     // Safeguard if message failed to create
     if (!message) {
@@ -55,7 +55,7 @@ export const sendMessage = async (req, res) => {
     chat.messages.push(message);
     await chat.save();
 
-    console.log("UPDATED CHAT AFTER NEW MESSAGE", chat);
+    // console.log("UPDATED CHAT AFTER NEW MESSAGE", chat);
 
     res.status(201).json({ chat, message });
   } catch (error) {
@@ -68,7 +68,7 @@ export const getMessagesByChat = async (req, res) => {
   try {
     const { chatId } = req.params;
 
-    console.log("Chat ID from messages retrieval: ", chatId);
+    // console.log("Chat ID from messages retrieval: ", chatId);
 
     const messages = await Message.find({ chat: chatId })
       .populate("sender", "name email") // optional

@@ -81,10 +81,6 @@ export default function WarayTranscribeApp({
 
   const checkingAuth = useUserStore((state) => state.checkingAuth);
 
-  // const response = useAiStore((state) => state.response);
-  // const fetchResponse = useAiStore((state) => state.fetchResponse);
-  // const aiLoading = useAiStore((state) => state.loading);
-
   const user = useUserStore((state) => state.user);
 
   const navigate = useNavigate();
@@ -98,85 +94,6 @@ export default function WarayTranscribeApp({
 
   const createChat = useChatStore((state) => state.createChat);
   const fetchChats = useChatStore((state) => state.fetchChats);
-
-  // const sendMessage = useMessageStore((state) => state.sendMessage);
-  // const chatId = useMessageStore((state) => state.chatId);
-  // const messageLoading = useMessageStore((state) => state.loading);
-
-  // const { sendMessage } = useMessageStore();
-
-  // const handleSendMessage = async () => {
-  //   if (!input.trim()) return;
-
-  //   // Add user message immediately
-  //   setMessages((prev) => [
-  //     ...prev,
-  //     { from: "user", text: input, time: getCurrentTime() },
-  //   ]);
-
-  //   // Trigger async AI fetch
-  //   fetchResponse(input);
-  // };
-
-  // // Send query to the api if response from ai is ready
-  // useEffect(() => {
-  //   if (!response) return; // wait until AI response is ready
-
-  //   // Send to backend now that response exists
-  //   if (user) {
-  //     sendMessage({
-  //       userId: user._id,
-  //       query: input,
-  //       response,
-  //     });
-  //   }
-
-  //   if (!messageLoading) {
-  //     // Add bot message
-  //     setMessages((prev) => [
-  //       ...prev,
-  //       { from: "bot", text: response, time: getCurrentTime() },
-  //     ]);
-  //     // Clear input
-  //     setInput("");
-  //   }
-  // }, [response]);
-
-  // useEffect(() => {
-  //   if (response) {
-  //     navigate(`/chats/${chatId}`);
-  //   }
-
-  //   // // Add bot message
-  //   // setMessages((prev) => [
-  //   //   ...prev,
-  //   //   { from: "bot", text: response, time: getCurrentTime() },
-  //   // ]);
-  //   // // Clear input
-  //   // setInput("");
-  // }, [chatId]);
-
-  // const createNewChat = async () => {
-  //   await createChat(userId, "Hello! This is my first message.");
-  // };
-
-  // const handleSend = () => {
-  //   console.log("Handle send is called");
-  //   if (!input.trim()) return;
-
-  //   console.log("User Input:", input);
-
-  //   // Add user message
-  //   setMessages([
-  //     ...messages,
-  //     { from: "user", text: input, time: getCurrentTime() },
-  //   ]);
-
-  //   // Fetch AI response
-  //   fetchResponse(input);
-
-  //   setInput("");
-  // };
 
   const chatId = useMessageStore((s) => s.chatId);
   const sendMessage = useMessageStore((s) => s.sendMessage);
@@ -193,29 +110,14 @@ export default function WarayTranscribeApp({
   const pendingQueryRef = useRef(null);
 
   useEffect(() => {
-    console.error("NEW CHAT PAGE");
     resetAll();
     setMessages([]);
     if (user) {
       fetchChats(user.id || user._id);
-      // console.log("User Chats:", user.chats);
     }
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Chat page mounted, current user:", user);
-  //   if (user) {
-  //     console.log("Logged in as ", user);
-  //   } else {
-  //     console.log("User not logged in. Working as guest.");
-  //   }
-  // }, [user]);
-
-  // useEffect(() => {
-  //   if (user) console.log("Current Chat:", currentChat);
-  // }, [currentChat]);
-
-  // ---- handle send (user is authenticated)
+  // ---- handle send
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
@@ -225,42 +127,45 @@ export default function WarayTranscribeApp({
       { from: "user", text: input, time: getCurrentTime() },
     ]);
 
-    // 2) store pending query so response effect knows what query this is
+    // 2) Store pending query so the response effect knows what query this is
     pendingQueryRef.current = input;
 
-    // 3) trigger AI fetch (doesn't need to return)
+    // 3) Trigger AI fetch
     fetchResponse(input);
 
-    // 4) optionally clear input right away for UX
+    // 4) Clear input for UX
     setInput("");
   };
 
-  let cancelled = false;
-
-  // ---- effect: when AI response is ready, send to backend using pendingQueryRef
+  // ---- effect: when AI response is ready, send to backend
   useEffect(() => {
+    // Snapshot and immediately clear the ref so any re-run of this effect is a no-op
+    const query = pendingQueryRef.current;
+    const aiText = response;
+    pendingQueryRef.current = null;
+
+    // Guard: nothing to do if there's no pending query or response
+    if (!query || query.trim() === "" || !aiText || aiText.trim() === "")
+      return;
+
+    let cancelled = false;
+
     const sendToBackend = async () => {
-      const aiText = response;
-      const query = pendingQueryRef.current;
-
-      if (!pendingQueryRef.current) return;
-
-      if (!aiText || !query || query.trim() === "") return;
+      if (!user) {
+        // Guest: just show the bot reply
+        setMessages((prev) => [
+          ...prev,
+          { from: "bot", text: aiText, time: getCurrentTime() },
+        ]);
+        return;
+      }
 
       try {
-        // Wait for sendMessage to complete.
-        if (!user) {
-          console.error("No user found when sending message");
-          return;
-        }
+        const userId = user._id || user.id;
+        const result = await sendMessage({ userId, query, response: aiText });
+        const { chat, message } = result || {};
 
-        const userId = user?._id || user?.id;
-        const { chat, message } =
-          (await sendMessage({
-            userId: userId,
-            query,
-            response: aiText,
-          })) || {}; // <- prevents destructuring undefined
+        if (cancelled) return;
 
         setMessages((prev) => [
           ...prev,
@@ -273,46 +178,19 @@ export default function WarayTranscribeApp({
         }
 
         console.log("Chat + message created:", chat, message);
-
         setCurrentChat(chat);
-        // ✅ Immediately set and navigate with the backend’s chat
-
         navigate(`/chats/${chat._id}`);
       } catch (err) {
         console.error("Failed to send message to backend:", err);
-      } finally {
-        // clear pending query so later AI responses won't re-trigger
-        pendingQueryRef.current = null;
       }
     };
 
     sendToBackend();
 
-    if (!user) {
-      setMessages((prev) => [
-        ...prev,
-        { from: "bot", text: response, time: getCurrentTime() },
-      ]);
-    }
-
     return () => {
       cancelled = true;
     };
   }, [responseCount]);
-
-  // useEffect(() => {
-  //   if (!chatId) return;
-
-  //   // Add bot message to UI (only once)
-  //   setMessages((prev) => [
-  //     ...prev,
-  //     { from: "bot", text: aiText, time: getCurrentTime() },
-  //   ]);
-  //   // If sendMessage returns chat id, navigate immediately:
-  //   if (chatId && !cancelled) {
-  //     navigate(`/chats/${chatId}`);
-  //   }
-  // }, [chatId]);
 
   function getCurrentTime() {
     const now = new Date();
@@ -324,12 +202,6 @@ export default function WarayTranscribeApp({
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      // handleSend();
-      // if (user) {
-      //   handleSendMessage();
-      // } else {
-      //   handleSend();
-      // }
       handleSendMessage();
     }
   };
@@ -338,10 +210,6 @@ export default function WarayTranscribeApp({
     console.log("Selected chat:", chat);
     setCurrentChat(chat);
     navigate(`/chats/${chat._id || chat.id}`);
-    // ✅ redirect to the chat view
-
-    // Load the selected chat messages here
-    // setShowChats(false);
   };
 
   const handleNewChat = () => {
@@ -496,13 +364,6 @@ export default function WarayTranscribeApp({
                   />
                   <button
                     onClick={handleSendMessage}
-                    // {() => {
-                    //   if (user) {
-                    //     handleSendMessage();
-                    //   } else {
-                    //     handleSend();
-                    //   }
-                    // }}
                     disabled={!enableChat || !input.trim()}
                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl 
                     flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition disabled:opacity-50"
