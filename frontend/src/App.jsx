@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import WarayTranscribeApp from "./pages/LandingPage";
+import LandingPage from "./pages/LandingPage";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import ChatViewPage2 from "./pages/ChatViewPage";
+import ChatViewPage from "./pages/ChatViewPage";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 import { Toaster } from "react-hot-toast";
@@ -28,11 +28,11 @@ function App() {
       </div>
       <Router>
         <Routes>
-          <Route path="/" element={<WarayTranscribeApp />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/new" element={<ChatPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/chats/:chatId" element={<ChatViewPage2 />} />
+          <Route path="/chats/:chatId" element={<ChatViewPage />} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

@@ -25,14 +25,10 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   console.log("Navbar mounted, current user:", user);
-  //   if (user) {
-  //     console.log("Logged in as ", user);
-  //   } else {
-  //     console.log("User not logged in. Working as guest.");
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    console.log("USER: ", user);
+    // if (user.chats) console.log("USER CHATS: ", user.chats);
+  }, []);
 
   const handleLogout = () => {
     logout();

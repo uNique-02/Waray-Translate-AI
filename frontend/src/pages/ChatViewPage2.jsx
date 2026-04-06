@@ -17,6 +17,26 @@ import useChatStore from "../stores/chatStore";
 import useMessageStore from "../stores/messageStore";
 import React from "react";
 
+// ─── Chat Skeleton ────────────────────────────────────────────────────────────
+
+const ChatSkeleton = () => (
+  <div className="flex-1 overflow-y-auto space-y-4 px-2 py-2 animate-pulse">
+    {[1, 2, 3, 4].map((i) => (
+      <div
+        key={i}
+        className={`flex flex-col ${i % 2 === 0 ? "items-start" : "items-end"}`}
+      >
+        <div
+          className={`h-10 rounded-2xl bg-gray-200 ${
+            i % 2 === 0 ? "w-48 rounded-bl-md" : "w-64 rounded-br-md"
+          }`}
+        />
+        <div className="h-3 w-16 mt-2 rounded bg-gray-100" />
+      </div>
+    ))}
+  </div>
+);
+
 // ─── Chat Section ────────────────────────────────────────────────────────────
 
 const ChatSection = ({ messageProps, loading }) => {
@@ -27,7 +47,7 @@ const ChatSection = ({ messageProps, loading }) => {
   }, [messageProps, loading]);
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-3 px-2 py-2 min-h-0">
+    <div className="space-y-3 px-2 py-2">
       {messageProps.map((msg, idx) => (
         <React.Fragment key={idx}>
           {/* User query */}
@@ -71,6 +91,7 @@ const ChatSection = ({ messageProps, loading }) => {
           </div>
         </div>
       )}
+
       <div ref={messagesEndRef} />
     </div>
   );
@@ -88,7 +109,7 @@ export default function ChatViewPage({ enableChat = true }) {
   const [uiMessages, setUIMessages] = useState([]);
   const [input, setInput] = useState("");
 
-  const { id: urlChatId } = useParams(); // ← source of truth
+  const { id: urlChatId } = useParams();
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
 
@@ -102,19 +123,20 @@ export default function ChatViewPage({ enableChat = true }) {
   const currentChat = useChatStore((state) => state.currentChat);
   const fetchChats = useChatStore((state) => state.fetchChats);
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
+  const chatLoading = useChatStore((state) => state.loading); // ← new
 
   const messages = useMessageStore((s) => s.messages);
   const fetchMessages = useMessageStore((s) => s.fetchMessages);
 
   // ── Runs every time the URL chat id changes (also on first mount)
-  // This is the ONLY place we load chat data — no duplicate effects.
   useEffect(() => {
     if (!user || !urlChatId) return;
 
     const load = async () => {
+      setUIMessages([]); // ← wipe stale messages immediately on chat switch
+
       await fetchChats(user._id || user.id);
 
-      // wait for Zustand to update
       const updatedChats = useChatStore.getState().chats;
 
       const target = updatedChats?.find(
@@ -125,12 +147,11 @@ export default function ChatViewPage({ enableChat = true }) {
         setCurrentChat(target);
       }
 
-      // Fetch messages for this chat id
       await fetchMessages(urlChatId);
     };
 
     load();
-  }, [urlChatId]); // ← re-fires on every navigation to a different chat
+  }, [urlChatId]);
 
   // ── Sync uiMessages whenever the store messages update
   useEffect(() => {
@@ -163,7 +184,10 @@ export default function ChatViewPage({ enableChat = true }) {
 
   function getCurrentTime() {
     const now = new Date();
-    return `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+    return `${now.getHours().toString().padStart(2, "0")}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
   }
 
   const handleSend = () => {
@@ -186,7 +210,7 @@ export default function ChatViewPage({ enableChat = true }) {
   const handleChatSelect = (chat) => {
     const id = chat._id || chat.id;
     setCurrentChat(chat);
-    navigate(`/chats/${id}`); // urlChatId change triggers the load effect
+    navigate(`/chats/${id}`);
   };
 
   const handleNewChat = () => {
@@ -311,7 +335,7 @@ export default function ChatViewPage({ enableChat = true }) {
             setShowChats={setShowChats}
           />
 
-          {/* Chat History Panel — fixed height, never reflows */}
+          {/* Chat History Panel */}
           {showChats && (
             <div className="w-80 backdrop-blur-md bg-white/95 border-r border-gray-200/50 shadow-xl animate-slide-in sticky top-[80px] h-[calc(100vh-80px)] overflow-hidden flex flex-col">
               {/* Header */}
@@ -346,12 +370,16 @@ export default function ChatViewPage({ enableChat = true }) {
                           onClick={() => handleChatSelect(chat)}
                         >
                           <p
-                            className={`text-sm font-medium truncate ${isActive ? "text-indigo-700" : "text-gray-800"}`}
+                            className={`text-sm font-medium truncate ${
+                              isActive ? "text-indigo-700" : "text-gray-800"
+                            }`}
                           >
                             {chat.title}
                           </p>
                           <p
-                            className={`text-xs mt-1 ${isActive ? "text-indigo-400" : "text-gray-500"}`}
+                            className={`text-xs mt-1 ${
+                              isActive ? "text-indigo-400" : "text-gray-500"
+                            }`}
                           >
                             {chat.updatedAt}
                           </p>
@@ -418,16 +446,22 @@ export default function ChatViewPage({ enableChat = true }) {
           <InfoSection showInfo={showInfo} />
 
           {/* Chat Section */}
-          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col min-h-[70vh] max-h-[80vh] overflow-hidden">
+          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col h-[calc(100vh-220px)] overflow-hidden">
             <div className="mb-4 pb-4 border-b border-gray-200 flex-shrink-0">
-              <h3 className="text-lg font-bold text-gray-800">Conversation</h3>
+              <h3 className="text-lg font-bold text-gray-800">
+                Conversation WTF
+              </h3>
               <p className="text-xs text-gray-500">
-                See the translation in action
+                See the translation in action TF
               </p>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-1">
-              <ChatSection messageProps={uiMessages} loading={loading} />
+            <div className="flex-1 overflow-y-auto min-h-0 px-1 scroll-smooth">
+              {chatLoading ? (
+                <ChatSkeleton />
+              ) : (
+                <ChatSection messageProps={uiMessages} loading={loading} />
+              )}
             </div>
 
             <div className="pt-4 border-t border-gray-200 flex-shrink-0">
@@ -437,13 +471,17 @@ export default function ChatViewPage({ enableChat = true }) {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  disabled={!enableChat}
-                  placeholder="Type your message in English..."
-                  className="flex-1 px-4 py-3 bg-white rounded-2xl border border-gray-200 outline-none transition-all text-sm"
+                  disabled={!enableChat || chatLoading}
+                  placeholder={
+                    chatLoading
+                      ? "Loading conversation..."
+                      : "Type your message in English..."
+                  }
+                  className="flex-1 px-4 py-3 bg-white rounded-2xl border border-gray-200 outline-none transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                   onClick={handleSend}
-                  disabled={!enableChat || !input.trim()}
+                  disabled={!enableChat || !input.trim() || chatLoading}
                   className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition disabled:opacity-50"
                 >
                   <Send size={18} />

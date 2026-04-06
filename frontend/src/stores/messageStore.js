@@ -31,14 +31,6 @@ const useMessageStore = create((set, get) => ({
     try {
       set({ loading: true, error: null });
 
-      // console.log(`
-      //   PARAMETERS PASSED:
-      //   \n userId: ${userId}
-      //   \n chatId: ${chatId}
-      //   \n query: ${query}
-      //   \n response: ${response}
-      //   `);
-
       const res = await axios.post(`/messages/new`, {
         userId,
         chatId,
@@ -48,7 +40,7 @@ const useMessageStore = create((set, get) => ({
 
       console.log(
         "STORE AFTER SENDING MESSAGE, RESPONSE FROM SERVER: ",
-        res.data
+        res.data,
       );
 
       const { chat, message } = res.data;

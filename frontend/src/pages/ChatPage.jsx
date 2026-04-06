@@ -145,12 +145,23 @@ export default function WarayTranscribeApp({
     pendingQueryRef.current = null;
 
     // Guard: nothing to do if there's no pending query or response
-    if (!query || query.trim() === "" || !aiText || aiText.trim() === "")
+    if (
+      !query ||
+      query.trim() === "" ||
+      !aiText ||
+      aiText.trim() === "" ||
+      query == "" ||
+      query == null ||
+      query.trim(" ") == ""
+    )
       return;
+
+    console.log("USE EFFECT IN SEND MESSAGE");
 
     let cancelled = false;
 
     const sendToBackend = async () => {
+      console.log("SENT TO BACKEND");
       if (!user) {
         // Guest: just show the bot reply
         setMessages((prev) => [

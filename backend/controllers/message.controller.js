@@ -4,6 +4,8 @@ import { createChat } from "./chat.controller.js";
 
 // 🟩 Create a new message
 export const sendMessage = async (req, res) => {
+  console.log("SEND MESSAGE IS CALLED");
+
   try {
     const params = req.body;
     const { userId, chatId, query, response } = req.body;
@@ -24,12 +26,12 @@ export const sendMessage = async (req, res) => {
     let message;
 
     try {
-      console.log("Creating new message with data:", {
-        chatId: chat?._id || null,
-        sender: userId,
-        query,
-        response,
-      });
+      // console.log("Creating new message with data:", {
+      //   chatId: chat?._id || null,
+      //   sender: userId,
+      //   query,
+      //   response,
+      // });
 
       message = await Message.create({
         chat: chat?._id || null,

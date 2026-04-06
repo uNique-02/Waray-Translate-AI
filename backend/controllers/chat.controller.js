@@ -57,9 +57,9 @@ export const createChat = async (userId, message) => {
 export const getUserChats = async (req, res) => {
   try {
     const { userId } = req.query;
-    console.log("USER iD: ", userId);
+    // console.log("USER iD: ", userId);
     const chats = await Chat.find({ user: userId }).populate("messages");
-    console.log("USER CHATS", chats);
+    // console.log("USER CHATS", chats);
     res.status(200).json(chats);
   } catch (error) {
     console.error("Error fetching user chats:", error);
@@ -101,7 +101,7 @@ export const getChatById = async (req, res) => {
 
 export const deleteChat = async (req, res) => {
   try {
-    console.log("Deleting chat with params:", req.params);
+    // console.log("Deleting chat with params:", req.params);
     const { chatId } = req.params;
 
     const chat = await Chat.findById(chatId);
@@ -116,7 +116,7 @@ export const deleteChat = async (req, res) => {
     // Delete the chat itself
     await Chat.deleteOne({ _id: chatId });
 
-    console.log(`Chat ${chatId} deleted successfully`);
+    // console.log(`Chat ${chatId} deleted successfully`);
     return res.status(200).json({ message: "Chat deleted successfully" });
   } catch (error) {
     console.error("Error deleting chat:", error);
@@ -186,11 +186,11 @@ async function generateTitleFromMessage(message) {
       max_tokens: 800,
     });
 
-    console.log("HF RESPONSE:", response);
+    // console.log("HF RESPONSE:", response);
 
-    console.log("HF RESPONSE MESSAGE:", response.choices[0].message);
+    // console.log("HF RESPONSE MESSAGE:", response.choices[0].message);
 
-    console.log("HF RESPONSE CONTENT:", response.choices[0].message.content);
+    // console.log("HF RESPONSE CONTENT:", response.choices[0].message.content);
 
     const title =
       response?.choices?.[0]?.message?.content ||

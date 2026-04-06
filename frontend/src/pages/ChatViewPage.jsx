@@ -85,6 +85,26 @@ import React from "react";
 //   );
 // };
 
+// ─── Chat Skeleton ────────────────────────────────────────────────────────────
+
+const ChatSkeleton = () => (
+  <div className="flex-1 overflow-y-auto space-y-4 px-2 py-2 animate-pulse">
+    {[1, 2, 3, 4].map((i) => (
+      <div
+        key={i}
+        className={`flex flex-col ${i % 2 === 0 ? "items-start" : "items-end"}`}
+      >
+        <div
+          className={`h-10 rounded-2xl bg-gray-200 ${
+            i % 2 === 0 ? "w-48 rounded-bl-md" : "w-64 rounded-br-md"
+          }`}
+        />
+        <div className="h-3 w-16 mt-2 rounded bg-gray-100" />
+      </div>
+    ))}
+  </div>
+);
+
 const ChatSection = ({ messageProps, loading }) => {
   const messagesEndRef = React.useRef(null);
 
@@ -97,7 +117,7 @@ const ChatSection = ({ messageProps, loading }) => {
   }, [messageProps, loading]);
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-3 px-2 py-2 min-h-0">
+    <div className="space-y-3 px-2 py-2">
       {messageProps.map((msg, idx) => (
         <React.Fragment key={idx}>
           <div
@@ -190,6 +210,7 @@ export default function ChatViewPage({
   const fetchChats = useChatStore((state) => state.fetchChats);
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
   const fetchChatById = useChatStore((state) => state.fetchChatById);
+  const chatLoading = useChatStore((state) => state.loading); // ← new
 
   const [query, setQuery] = useState("");
 
@@ -216,20 +237,25 @@ export default function ChatViewPage({
     }
   }, []);
 
+  // 1. Fetch messages when chat changes
   useEffect(() => {
     if (currentChat) {
       fetchMessages(currentChat?._id || currentChat?.id);
-      // console.log("CURRENT CHAT: ", currentChat);
-      setUIMessages(messages);
-      // console.log("CURRENT MESSAGES: ", messages);
-      // if (user) console.log("Current Chat:", currentChat);
     } else {
-      // Only redirect if not already on /new
       if (location.pathname !== "/new") {
         navigate("/new");
       }
     }
   }, [currentChat]);
+
+  // 2. Update UI when messages change
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      setUIMessages(messages);
+    } else {
+      setUIMessages([]);
+    }
+  }, [messages]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -273,8 +299,6 @@ export default function ChatViewPage({
   const handleChatSelect = (chat) => {
     console.log("Selected chat:", chat);
     setCurrentChat(chat);
-    setUIMessages(chat.messages);
-    console.log("MESSAGES NOW");
     navigate(`/chats/${chat._id || chat.id}`);
   };
 
@@ -339,7 +363,7 @@ export default function ChatViewPage({
   // Update messages when AI response arrives
   useEffect(() => {
     console.log(
-      "Chatview page set bot message for use effect for response was called"
+      "Chatview page set bot message for use effect for response was called",
     );
 
     if (!response) return;
@@ -493,8 +517,11 @@ export default function ChatViewPage({
                 {/* Chat List - Scrollable */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
                   {chats.length > 0 ? (
-                    chats.map((chat) => (
-                      <div key={chat.id} className="relative group ">
+                    [...chats].reverse().map((chat) => (
+                      <div
+                        key={chat._id || chat.id}
+                        className="relative group "
+                      >
                         <button
                           className="w-full text-left p-3 pr-10 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all border border-gray-200/50"
                           onClick={() => handleChatSelect(chat)}
@@ -570,18 +597,25 @@ export default function ChatViewPage({
           <InfoSection showInfo={showInfo} />
 
           {/* Chat Section */}
-          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col min-h-[70vh]">
-            <div className="mb-4 pb-4 border-b border-gray-200">
-              <h3 className="text-lg font-bold text-gray-800">Conversation</h3>
+          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col h-[calc(100vh-220px)] overflow-hidden">
+            <div className="mb-4 pb-4 border-b border-gray-200 flex-shrink-0">
+              <h3 className="text-lg font-bold text-gray-800">
+                Conversation WTF
+              </h3>
               <p className="text-xs text-gray-500">
-                See the translation in action
+                See the translation in action TF
               </p>
             </div>
 
-            <ChatSection messageProps={uiMessages} loading={loading} />
+            <div className="flex-1 overflow-y-auto min-h-0 px-1 scroll-smooth">
+              {chatLoading ? (
+                <ChatSkeleton />
+              ) : (
+                <ChatSection messageProps={uiMessages} loading={loading} />
+              )}
+            </div>
 
-            {/* Input Area */}
-            <div className="mt-auto pt-4 border-t border-gray-200">
+            <div className="pt-4 border-t border-gray-200 flex-shrink-0">
               <div className="flex gap-2">
                 <input
                   type="text"
