@@ -17,13 +17,8 @@ const useChatStore = create(
       // Fetch all chats for current user
       fetchChats: async (userId) => {
         try {
-          console.log("[chatStore] fetchChats start", { userId });
           set({ loading: true, error: null });
           const res = await axios.get(`/chats?userId=${userId}`);
-          console.log("[chatStore] fetchChats success", {
-            userId,
-            count: Array.isArray(res.data) ? res.data.length : 0,
-          });
           set({ chats: res.data, loading: false });
         } catch (error) {
           console.error("Error fetching chats:", error);
@@ -60,9 +55,7 @@ const useChatStore = create(
 
       deleteChat: async (chatId) => {
         try {
-          // console.log("Chat store is called to delete chat with ID: ", chatId);
-          const res = await axios.delete(`/chats/${chatId}`);
-          console.log(res.data);
+          await axios.delete(`/chats/${chatId}`);
           set((state) => ({
             chats: state.chats.filter(
               (chat) => chat.id !== chatId && chat._id !== chatId,
@@ -90,12 +83,10 @@ const useChatStore = create(
         try {
           set({ loading: true, error: null });
 
-          console.log("[chatStore] fetchChatById start", { chatId });
           const res = await axios.get(`/chats/${chatId}`);
 
           // console.log("Fetched chat data in fetchByID:", res.data);
 
-          console.log("[chatStore] fetchChatById success", { chatId });
           set({ currentChat: res.data, loading: false });
           return res.data;
         } catch (error) {

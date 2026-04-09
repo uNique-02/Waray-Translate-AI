@@ -11,15 +11,10 @@ const useMessageStore = create((set) => ({
   // ✅ Fetch all messages by chat
   fetchMessages: async (chatId) => {
     try {
-      console.log("[messageStore] fetchMessages start", { chatId });
       set({ loading: true, error: null });
       const res = await axios.get(`/messages/${chatId}`);
       // console.log(" STORE FETCHED MESSAGES ", res.data);
 
-      console.log("[messageStore] fetchMessages success", {
-        chatId,
-        count: Array.isArray(res.data) ? res.data.length : 0,
-      });
       set({ messages: res.data, chatId, loading: false });
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -34,12 +29,6 @@ const useMessageStore = create((set) => ({
   sendMessage: async ({ userId, chatId = null, query, response }) => {
     // console.log("Store: ", userId, chatId, query, response);
     try {
-      console.log("[messageStore] sendMessage start", {
-        userId,
-        chatId,
-        queryPreview: query?.slice(0, 60),
-        responsePreview: response?.slice(0, 60),
-      });
       set({ loading: true, error: null });
 
       const res = await axios.post(`/messages/new`, {
@@ -68,12 +57,6 @@ const useMessageStore = create((set) => ({
 
       // console.log("RETURNING CHAT AND MESSAGES");
 
-      console.log("[messageStore] sendMessage success", {
-        userId,
-        chatId: chat?._id || chatId,
-        hasChat: Boolean(chat),
-        hasMessage: Boolean(message),
-      });
       return { chat, message };
     } catch (error) {
       console.error("Error sending message:", error);

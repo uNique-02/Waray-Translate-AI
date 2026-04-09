@@ -8,6 +8,7 @@ import { OAuth2Client } from "google-auth-library";
 
 const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY = "7d"; // Used for JWT, separate TTL for Redis
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function maskEmail(email) {
   if (!email || typeof email !== "string") return "unknown";
@@ -27,36 +28,44 @@ function getRequestMeta(req) {
 export const signup = async (req, res) => {
   try {
     const { name, email, password, confirmPassword, role } = req.body;
+    const trimmedName = typeof name === "string" ? name.trim() : "";
+    const trimmedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const trimmedPassword = typeof password === "string" ? password : "";
+    const trimmedConfirmPassword =
+      typeof confirmPassword === "string" ? confirmPassword : "";
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!trimmedName || !trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Basic email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (trimmedName.length < 2 || trimmedName.length > 80) {
+      return res.status(400).json({ message: "Name must be between 2 and 80 characters" });
+    }
 
-    if (!emailRegex.test(email)) {
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    if (password !== confirmPassword) {
+    if (trimmedPassword.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long" });
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: trimmedEmail });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    console.log("NAME: ", name);
-
     // UI Avatars - generates initials-based avatars (no external dependency issues)
-    const picture = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+    const picture = `https://ui-avatars.com/api/?name=${encodeURIComponent(trimmedName)}&background=random`;
 
     const newUser = new User({
-      name: name,
-      email: email,
-      password: password,
+      name: trimmedName,
+      email: trimmedEmail,
+      password: trimmedPassword,
       picture: picture,
       role: role,
       isGoogleUser: false, // Default to false for regular signup
@@ -94,77 +103,38 @@ export const login = async (req, res) => {
 
   try {
     const { email, password } = req.body;
-    const safeEmail = maskEmail(email);
-
-    console.log("[AUTH][LOGIN] Incoming login request", {
-      email: safeEmail,
-      hasPassword: Boolean(password),
-      ip,
-      userAgent,
-    });
+    const trimmedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const safeEmail = maskEmail(trimmedEmail);
+    const trimmedPassword = typeof password === "string" ? password : "";
 
     // Validate input
-    if (!email || !password) {
-      console.warn("[AUTH][LOGIN] Validation failed: missing email or password", {
-        email: safeEmail,
-        ip,
-      });
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
-
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      console.warn("[AUTH][LOGIN] User lookup failed: user not found", {
-        email: safeEmail,
-        ip,
-      });
-      return res
-        .status(400)
-        .json({ message: "User does not exist. Please try again." });
-    }
-
-    console.log("[AUTH][LOGIN] User found", {
-      userId: user._id?.toString(),
-      email: safeEmail,
-      isGoogleUser: user.isGoogleUser,
-    });
-
-    // Check if password is correct
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      console.warn("[AUTH][LOGIN] Password check failed", {
-        userId: user._id?.toString(),
-        email: safeEmail,
-        ip,
-      });
+    if (!trimmedEmail || !trimmedPassword) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    console.log("[AUTH][LOGIN] Password check passed", {
-      userId: user._id?.toString(),
-    });
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email: trimmedEmail });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Check if password is correct
+    const isMatch = await user.comparePassword(trimmedPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
     // Generate tokens and save refresh token
     const { accessToken, refreshToken } = await generateTokens(user);
-    console.log("[AUTH][LOGIN] Tokens generated", {
-      userId: user._id?.toString(),
-      hasAccessToken: Boolean(accessToken),
-      hasRefreshToken: Boolean(refreshToken),
-    });
 
     await saveRefreshToken(user._id, refreshToken);
-    console.log("[AUTH][LOGIN] Refresh token saved", {
-      userId: user._id?.toString(),
-    });
 
     // Set cookies
     setCookies(res, accessToken, refreshToken);
-    console.log("[AUTH][LOGIN] Cookies set successfully", {
-      userId: user._id?.toString(),
-    });
 
     res.status(200).json({
       message: "Login successful",
@@ -178,11 +148,6 @@ export const login = async (req, res) => {
         role: user.role,
       },
     });
-
-    console.log("[AUTH][LOGIN] Completed successfully", {
-      userId: user._id?.toString(),
-      durationMs: Date.now() - startedAt,
-    });
   } catch (error) {
     console.error("[AUTH][LOGIN] Unexpected error", {
       message: error?.message,
@@ -193,7 +158,6 @@ export const login = async (req, res) => {
     });
     res.status(500).json({
       message: "Server error. Please try again later.",
-      error: error.message,
     });
   }
 };
@@ -282,7 +246,7 @@ export const refreshToken = async (req, res) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // use HTTPS in production
-      sameSite: "Strict",
+      sameSite: "strict",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 

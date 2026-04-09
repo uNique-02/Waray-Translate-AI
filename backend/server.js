@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-// import cookieParser from "cookie-parser";
 import connectToMongoDB from "./lib/connectToMongoDB.js";
 import aiRoutes from "./routes/ai.routes.js";
 import authRoutes from "./routes/auth.route.js";
@@ -25,6 +24,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.set("trust proxy", 1);
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 
