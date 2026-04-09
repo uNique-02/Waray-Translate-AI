@@ -1,327 +1,186 @@
-import { useState } from "react";
-import {
-  MessageSquare,
-  Settings,
-  Info,
-  Sparkles,
-  Send,
-  Menu,
-  X,
-  MoreVertical,
-  Share2,
-  Trash2,
-} from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+﻿import { useEffect, useRef, useState } from "react";
+import { MessageSquare, MoreVertical, Share2, Trash2, X } from "lucide-react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import InfoSection from "../components/InfoSection";
-import { useEffect } from "react";
+import ChatSection from "../components/ChatSection.jsx";
 import useAiStore from "../stores/aiStore";
 import useUserStore from "../stores/useUserStore";
 import useChatStore from "../stores/chatStore";
 import useMessageStore from "../stores/messageStore";
-import React from "react";
-// import { sendMessage } from "../../../backend/controllers/message.controller";
 
-// Mock ChatSection component
-// const ChatSection = ({ messageProps, loading }) => {
-//   return (
-//     <div className="flex-1 overflow-y-auto space-y-3 mb-4 px-2">
-//       {messageProps.map((msg, idx) => (
-//         <React.Fragment key={idx}>
-//           <div
-//             key={`q-${idx}`}
-//             className="flex flex-col items-end animate-slide-up"
-//           >
-//             <div
-//               className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
-//                   `}
-//             >
-//               <p className="text-sm leading-relaxed">{msg.query}</p>
-//             </div>
-//             <span className="text-xs text-gray-400 mt-1.5 px-2">
-//               {msg.updatedAt}
-//             </span>
-//           </div>
+function formatTime(value) {
+  const date = value ? new Date(value) : new Date();
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-//           {msg.response && (
-//             <div
-//               key={`r-${idx}`}
-//               className="flex flex-col items-start animate-slide-up"
-//             >
-//               <div
-//                 className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md
-//                   "bg-white text-gray-800 rounded-bl-md border border-gray-100"
-//               `}
-//               >
-//                 <p className="text-sm leading-relaxed">{msg.response}</p>
-//               </div>
-//               <span className="text-xs text-gray-400 mt-1.5 px-2">
-//                 {msg.updatedAt}
-//               </span>
-//             </div>
-//           )}
-//         </React.Fragment>
-//       ))}
+function flattenMessages(items = []) {
+  return items.flatMap((item) => {
+    const time = formatTime(item.updatedAt || item.createdAt);
+    const flat = [{ from: "user", text: item.query, time }];
 
-//       {loading && (
-//         <div className="flex items-start space-x-2 animate-fade-in">
-//           <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
-//             <div className="flex space-x-2">
-//               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-//               <div
-//                 className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-//                 style={{ animationDelay: "0.1s" }}
-//               ></div>
-//               <div
-//                 className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-//                 style={{ animationDelay: "0.2s" }}
-//               ></div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
+    if (item.response) {
+      flat.push({ from: "bot", text: item.response, time });
+    }
 
-// ─── Chat Skeleton ────────────────────────────────────────────────────────────
+    return flat;
+  });
+}
 
-const ChatSkeleton = () => (
-  <div className="flex-1 overflow-y-auto space-y-4 px-2 py-2 animate-pulse">
-    {[1, 2, 3, 4].map((i) => (
-      <div
-        key={i}
-        className={`flex flex-col ${i % 2 === 0 ? "items-start" : "items-end"}`}
-      >
-        <div
-          className={`h-10 rounded-2xl bg-gray-200 ${
-            i % 2 === 0 ? "w-48 rounded-bl-md" : "w-64 rounded-br-md"
-          }`}
-        />
-        <div className="h-3 w-16 mt-2 rounded bg-gray-100" />
-      </div>
-    ))}
-  </div>
-);
+export default function ChatViewPage({ enableChat = true }) {
+  const { chatId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pendingQueryRef = useRef(null);
 
-const ChatSection = ({ messageProps, loading }) => {
-  const messagesEndRef = React.useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  React.useEffect(() => {
-    scrollToBottom();
-  }, [messageProps, loading]);
-
-  return (
-    <div className="space-y-3 px-2 py-2">
-      {messageProps.map((msg, idx) => (
-        <React.Fragment key={idx}>
-          <div
-            key={`q-${idx}`}
-            className="flex flex-col items-end animate-slide-up"
-          >
-            <div
-              className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
-                  `}
-            >
-              <p className="text-sm leading-relaxed">{msg.query}</p>
-            </div>
-            <span className="text-xs text-gray-400 mt-1.5 px-2">
-              {msg.updatedAt}
-            </span>
-          </div>
-
-          {msg.response && (
-            <div
-              key={`r-${idx}`}
-              className="flex flex-col items-start animate-slide-up"
-            >
-              <div
-                className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md 
-                  "bg-white text-gray-800 rounded-bl-md border border-gray-100"
-              `}
-              >
-                <p className="text-sm leading-relaxed">{msg.response}</p>
-              </div>
-              <span className="text-xs text-gray-400 mt-1.5 px-2">
-                {msg.updatedAt}
-              </span>
-            </div>
-          )}
-        </React.Fragment>
-      ))}
-
-      {loading && (
-        <div className="flex items-start space-x-2 animate-fade-in">
-          <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
-            <div className="flex space-x-2">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                style={{ animationDelay: "0.1s" }}
-              ></div>
-              <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
-            </div>
-          </div>
-        </div>
-      )}
-      <div ref={messagesEndRef} />
-    </div>
-  );
-};
-
-export default function ChatViewPage({
-  enableChat = true,
-  messageProps = [],
-  chatId = null,
-}) {
   const [showInfo, setShowInfo] = useState(false);
-  const [inputText, setInputText] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [showChats, setShowChats] = useState(false);
+  const [showChats, setShowChats] = useState(
+    Boolean(location.state?.showChats),
+  );
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [chatToDelete, setChatToDelete] = useState(null);
+  const [input, setInput] = useState("");
+  const [uiMessages, setUIMessages] = useState([]);
 
   const user = useUserStore((state) => state.user);
-
-  const [uiMessages, setUIMessages] = useState(messageProps);
-  const [input, setInput] = useState("");
-
-  const response = useAiStore((state) => state.response);
-  const fetchResponse = useAiStore((state) => state.fetchResponse);
-  const loading = useAiStore((state) => state.loading);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const currentYear = new Date().getFullYear();
-
   const chats = useChatStore((state) => state.chats);
   const currentChat = useChatStore((state) => state.currentChat);
-  const createChat = useChatStore((state) => state.createChat);
   const fetchChats = useChatStore((state) => state.fetchChats);
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
   const fetchChatById = useChatStore((state) => state.fetchChatById);
-  const chatLoading = useChatStore((state) => state.loading); // ← new
+  const deleteChat = useChatStore((state) => state.deleteChat);
 
-  const [query, setQuery] = useState("");
+  const messages = useMessageStore((state) => state.messages);
+  const fetchMessages = useMessageStore((state) => state.fetchMessages);
+  const sendMessage = useMessageStore((state) => state.sendMessage);
 
-  const messages = useMessageStore((s) => s.messages);
-  const fetchMessages = useMessageStore((s) => s.fetchMessages);
-  const sendMessage = useMessageStore((s) => s.sendMessage);
+  const response = useAiStore((state) => state.response);
+  const responseCount = useAiStore((state) => state.responseCount);
+  const fetchResponse = useAiStore((state) => state.fetchResponse);
+  const loading = useAiStore((state) => state.loading);
 
-  const deleteChat = useChatStore((s) => s.deleteChat);
+  const currentYear = new Date().getFullYear();
+  const activeChatId = chatId || currentChat?._id || currentChat?.id;
 
   useEffect(() => {
-    // console.error("VIEW CHAT PAGE");
-    // console.log("Current user bruh: ", user);
-    if (user) {
-      // console.log("Fetching chats upon refresh or first time access");
-      fetchChats(user._id || user.id);
-      fetchMessages(currentChat.id || currentChat._id);
-      setUIMessages(currentChat.messages);
-      fetchChatById(currentChat.id || currentChat._id);
-      // fetchMessages(currentChat?._id || currentChat?.id);
-    } else {
-      if (location.pathname !== "/new") {
-        navigate("/new");
-      }
+    if (!user) {
+      navigate("/new", { state: { showChats } });
+      return;
     }
-  }, []);
 
-  // 1. Fetch messages when chat changes
-  useEffect(() => {
-    if (currentChat) {
-      fetchMessages(currentChat?._id || currentChat?.id);
-    } else {
-      if (location.pathname !== "/new") {
-        navigate("/new");
-      }
-    }
-  }, [currentChat]);
+    if (!chatId) return;
 
-  // 2. Update UI when messages change
+    fetchChats(user._id || user.id);
+    fetchChatById(chatId);
+    fetchMessages(chatId);
+  }, [chatId, user, fetchChats, fetchChatById, fetchMessages, navigate, showChats]);
+
   useEffect(() => {
-    if (messages && messages.length > 0) {
-      setUIMessages(messages);
-    } else {
-      setUIMessages([]);
-    }
+    setUIMessages(flattenMessages(messages));
   }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-
-    // console.log("User Input:", input);
-
-    // Add user message
-    // When user sends message
-    setUIMessages((prev) => [
-      ...prev,
-      {
-        query: input, // show immediately
-        response: "", // blank for now
-        updatedAt: getCurrentTime(),
-      },
-    ]);
-
-    // Fetch AI response
-    const res = fetchResponse(input);
-
-    // console.log("RESPONSE AFTER FETCH RESPONSE: ", res);
-
-    setQuery(input);
-    setInput("");
-  };
-
-  function getCurrentTime() {
+  const getCurrentTime = () => {
     const now = new Date();
     const hours = now.getHours().toString().padStart(2, "0");
     const minutes = now.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
-  }
+  };
+
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+
+    setUIMessages((prev) => [
+      ...prev,
+      { from: "user", text: input, time: getCurrentTime() },
+    ]);
+
+    pendingQueryRef.current = input;
+    fetchResponse(input);
+    setInput("");
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSendMessage();
     }
   };
 
+  useEffect(() => {
+    const query = pendingQueryRef.current;
+    const aiText = response;
+    pendingQueryRef.current = null;
+
+    if (!query || !aiText || !aiText.trim() || !activeChatId) return;
+
+    let cancelled = false;
+
+    const sendToBackend = async () => {
+      if (!user) {
+        setUIMessages((prev) => [
+          ...prev,
+          { from: "bot", text: aiText, time: getCurrentTime() },
+        ]);
+        return;
+      }
+
+      try {
+        await sendMessage({
+          userId: user.id || user._id,
+          chatId: activeChatId,
+          query,
+          response: aiText,
+        });
+
+        if (cancelled) return;
+
+        setUIMessages((prev) => [
+          ...prev,
+          { from: "bot", text: aiText, time: getCurrentTime() },
+        ]);
+      } catch (err) {
+        console.error("Failed to send message to backend:", err);
+      }
+    };
+
+    sendToBackend();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [response, responseCount, activeChatId, sendMessage, user]);
+
   const handleChatSelect = (chat) => {
-    console.log("Selected chat:", chat);
     setCurrentChat(chat);
-    navigate(`/chats/${chat._id || chat.id}`);
+    navigate(`/chats/${chat._id || chat.id}`, {
+      state: { showChats },
+    });
   };
 
   const handleNewChat = () => {
-    console.log("Create new chat");
     setUIMessages([]);
+    setInput("");
     setShowChats(false);
     navigate("/new");
   };
 
-  const handleMenuToggle = (e, chatId) => {
+  const handleMenuToggle = (e, chatMenuId) => {
     e.stopPropagation();
-    setOpenMenuId(openMenuId === chatId ? null : chatId);
+    setOpenMenuId(openMenuId === chatMenuId ? null : chatMenuId);
   };
 
   const handleShare = (e, chat) => {
     e.stopPropagation();
     setOpenMenuId(null);
 
-    // Create shareable link
     const shareUrl = `${window.location.origin}/chats/${chat._id || chat.id}`;
 
-    // Try to use Web Share API if available
     if (navigator.share) {
       navigator
         .share({
@@ -331,7 +190,6 @@ export default function ChatViewPage({
         })
         .catch((error) => console.log("Error sharing:", error));
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(shareUrl).then(() => {
         alert("Chat link copied to clipboard!");
       });
@@ -346,12 +204,14 @@ export default function ChatViewPage({
   };
 
   const handleDeleteConfirm = () => {
-    if (chatToDelete) {
-      // console.log("Deleting chat:", chatToDelete);
-      // Add your delete logic here
-      deleteChat(chatToDelete._id || chatToDelete.id);
-      setShowDeleteConfirm(false);
-      setChatToDelete(null);
+    if (!chatToDelete) return;
+
+    deleteChat(chatToDelete._id || chatToDelete.id);
+    setShowDeleteConfirm(false);
+    setChatToDelete(null);
+
+    if ((chatToDelete._id || chatToDelete.id) === activeChatId) {
+      navigate("/new");
     }
   };
 
@@ -360,43 +220,6 @@ export default function ChatViewPage({
     setChatToDelete(null);
   };
 
-  // Update messages when AI response arrives
-  useEffect(() => {
-    console.log(
-      "Chatview page set bot message for use effect for response was called",
-    );
-
-    if (!response) return;
-
-    (async () => {
-      const { chat, message } = await sendMessage({
-        userId: user.id || user._id,
-        chatId: currentChat.id || currentChat._id,
-        query,
-        response,
-      });
-
-      // console.log("RETRIEVED CHAT: ", chat);
-      // console.log("VS CURRENT CHAT: ", currentChat);
-
-      setQuery("");
-
-      await fetchMessages(currentChat.id || currentChat._id);
-
-      // console.log("FETCHED MESSAGES:", messages);
-
-      setUIMessages((prev) => {
-        const updated = [...prev];
-        if (updated.length > 0) {
-          updated[updated.length - 1].response = response;
-          updated[updated.length - 1].updatedAt = getCurrentTime();
-        }
-        return updated;
-      });
-    })();
-  }, [response]);
-
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       if (openMenuId !== null) {
@@ -409,67 +232,58 @@ export default function ChatViewPage({
   }, [openMenuId]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex flex-col">
       <style>{`
-      @keyframes fade-in {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
         }
-      }
-      .animate-fade-in {
-        animation: fade-in 0.5s ease-out forwards;
-      }
-      @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-      }
-      .animate-float {
-        animation: float 3s ease-in-out infinite;
-      }
-      @keyframes slide-in-from-sidebar {
-        from {
-          transform: translateX(-80px);
-          opacity: 0;
+        @keyframes slide-in-from-sidebar {
+          from {
+            transform: translateX(-80px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
-        to {
-          transform: translateX(0);
-          opacity: 1;
+        .animate-slide-in {
+          animation: slide-in-from-sidebar 0.3s ease-out forwards;
         }
-      }
-      .animate-slide-in {
-        animation: slide-in-from-sidebar 0.3s ease-out forwards;
-      }
-    `}</style>
+      `}</style>
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 animate-fade-in">
+          <div className="bg-slate-100/95 rounded-2xl shadow-[0_24px_80px_rgba(2,6,23,0.45)] p-6 max-w-md w-full mx-4 animate-fade-in border border-blue-200/80">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-red-100 rounded-full">
-                <Trash2 size={24} className="text-red-600" />
+              <div className="p-3 bg-blue-50 rounded-full">
+                <Trash2 size={24} className="text-blue-700" />
               </div>
-              <h3 className="text-lg font-bold text-gray-800">Delete Chat</h3>
+              <h3 className="text-lg font-bold text-slate-900">Delete Chat</h3>
             </div>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete "{chatToDelete?.title}"? This
-              action cannot be undone.
+            <p className="text-slate-600 mb-6">
+              Are you sure you want to delete "{chatToDelete?.title}"? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={handleDeleteCancel}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 rounded-lg border border-blue-200 text-slate-700 hover:bg-blue-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                className="px-4 py-2 rounded-lg bg-blue-700 text-white hover:bg-blue-600 transition-colors"
               >
                 Delete
               </button>
@@ -478,16 +292,12 @@ export default function ChatViewPage({
         </div>
       )}
 
-      {/* Header */}
-      <header className="backdrop-blur-md bg-white/70 border-b border-gray-200/50 shadow-sm sticky top-0 z-50">
+      <header className="backdrop-blur-md bg-slate-950/60 border-b border-blue-900/60 shadow-sm sticky top-0 z-50">
         <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
       </header>
 
-      {/* Main Layout */}
-      <div className="flex flex-1 max-w-7xl mx-auto w-full">
-        {/* Sidebar and Chat List Container */}
-        <div className="flex">
-          {/* Sidebar */}
+      <div className="flex flex-1 min-h-0 max-w-7xl mx-auto w-full overflow-hidden">
+        <div className="flex min-h-0">
           <Sidebar
             showInfo={showInfo}
             setShowInfo={setShowInfo}
@@ -497,91 +307,83 @@ export default function ChatViewPage({
             setShowChats={setShowChats}
           />
 
-          {/* Chat List Panel - Adjacent to Sidebar */}
           {showChats && (
-            <div className="w-80 backdrop-blur-md bg-white/95 border-r border-gray-200/50 shadow-xl animate-slide-in">
-              <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
-                  <h2 className="text-lg font-semibold text-gray-800">
-                    Chat History
-                  </h2>
+            <div className="w-80 h-full backdrop-blur-md bg-slate-100/95 border-r border-blue-200/80 shadow-[0_24px_80px_rgba(2,6,23,0.35)] animate-slide-in">
+              <div className="flex flex-col h-full min-h-0">
+                <div className="flex items-center justify-between p-4 border-b border-blue-100">
+                  <h2 className="text-lg font-semibold text-slate-900">Chat History</h2>
                   <button
                     onClick={() => setShowChats(false)}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-lg hover:bg-blue-50 transition-colors text-slate-700"
                   >
                     <X size={18} />
                   </button>
                 </div>
 
-                {/* Chat List - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
                   {chats.length > 0 ? (
-                    [...chats].reverse().map((chat) => (
-                      <div
-                        key={chat._id || chat.id}
-                        className="relative group "
-                      >
-                        <button
-                          className="w-full text-left p-3 pr-10 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all border border-gray-200/50"
-                          onClick={() => handleChatSelect(chat)}
-                        >
-                          <p className="text-sm font-medium text-gray-800 truncate">
-                            {chat.title}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {chat.updatedAt}
-                          </p>
-                        </button>
+                    [...chats].reverse().map((chat) => {
+                      const menuId = chat._id || chat.id;
+                      const isActive = menuId === activeChatId;
+                      return (
+                        <div key={menuId} className="relative group">
+                          <button
+                            className={`w-full text-left p-3 pr-10 rounded-lg shadow-sm hover:shadow-md transition-all border ${
+                              isActive
+                                ? "bg-blue-50 border-blue-200 ring-2 ring-blue-200 shadow-md"
+                                : "bg-white hover:bg-blue-50 border-blue-100"
+                            }`}
+                            onClick={() => handleChatSelect(chat)}
+                          >
+                            <p className="text-sm font-medium text-slate-900 truncate">
+                              {chat.title}
+                            </p>
+                            <p className={`text-xs mt-1 ${isActive ? "text-blue-700" : "text-slate-500"}`}>
+                              {chat.updatedAt}
+                            </p>
+                          </button>
 
-                        {/* Ellipse Menu Button */}
-                        <button
-                          onClick={(e) =>
-                            handleMenuToggle(e, chat.id || chat._id)
-                          }
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreVertical size={16} className="text-gray-600" />
-                        </button>
+                          <button
+                            onClick={(e) => handleMenuToggle(e, menuId)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreVertical size={16} className="text-slate-600" />
+                          </button>
 
-                        {/* Dropdown Menu */}
-                        {openMenuId === (chat.id || chat._id) && (
-                          <div className="absolute right-2 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 animate-fade-in">
-                            <button
-                              onClick={(e) => handleShare(e, chat)}
-                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                            >
-                              <Share2 size={16} />
-                              Share
-                            </button>
-                            <button
-                              onClick={(e) => handleDeleteClick(e, chat)}
-                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))
+                          {openMenuId === menuId && (
+                            <div className="absolute right-2 top-full mt-1 w-48 bg-slate-100 rounded-lg shadow-lg border border-blue-100 py-1 z-10 animate-fade-in">
+                              <button
+                                onClick={(e) => handleShare(e, chat)}
+                                className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-blue-50 flex items-center gap-2 transition-colors"
+                              >
+                                <Share2 size={16} />
+                                Share
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteClick(e, chat)}
+                                className="w-full px-4 py-2 text-left text-sm text-blue-700 hover:bg-blue-50 flex items-center gap-2 transition-colors"
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <MessageSquare
-                        size={48}
-                        className="mx-auto mb-3 opacity-20"
-                      />
+                    <div className="text-center py-8 text-slate-500">
+                      <MessageSquare size={48} className="mx-auto mb-3 opacity-20" />
                       <p className="text-sm">No chats yet</p>
                       <p className="text-xs mt-1">Start a new conversation</p>
                     </div>
                   )}
                 </div>
 
-                {/* New Chat Button */}
-                <div className="p-4 border-t border-gray-200/50">
+                <div className="p-4 border-t border-blue-100">
                   <button
                     onClick={handleNewChat}
-                    className="w-full p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-medium hover:shadow-lg transition-all"
+                    className="w-full p-3 rounded-lg bg-gradient-to-br from-blue-700 to-cyan-600 text-white font-medium hover:shadow-lg transition-all"
                   >
                     + New Chat
                   </button>
@@ -591,62 +393,30 @@ export default function ChatViewPage({
           )}
         </div>
 
-        {/* Content Area */}
-        <main className="flex flex-col lg:flex-row flex-1 p-6 gap-6">
-          {/* Info Section */}
+        <main className="flex flex-col lg:flex-row flex-1 min-h-0 p-6 gap-6 overflow-hidden">
           <InfoSection showInfo={showInfo} />
 
-          {/* Chat Section */}
-          <div className="flex-1 backdrop-blur-md bg-white/70 rounded-3xl shadow-xl border border-white/50 p-6 flex flex-col h-[calc(100vh-220px)] overflow-hidden">
-            <div className="mb-4 pb-4 border-b border-gray-200 flex-shrink-0">
-              <h3 className="text-lg font-bold text-gray-800">
-                Conversation WTF
-              </h3>
-              <p className="text-xs text-gray-500">
-                See the translation in action TF
-              </p>
-            </div>
-
-            <div className="flex-1 overflow-y-auto min-h-0 px-1 scroll-smooth">
-              {chatLoading ? (
-                <ChatSkeleton />
-              ) : (
-                <ChatSection messageProps={uiMessages} loading={loading} />
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-gray-200 flex-shrink-0">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  disabled={!enableChat}
-                  placeholder="Type your message in English..."
-                  className="flex-1 px-4 py-3 bg-white rounded-2xl border border-gray-200 outline-none transition-all text-sm"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={!enableChat || !input.trim()}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl 
-                    flex items-center gap-2 font-medium hover:opacity-90 active:scale-95 transition disabled:opacity-50"
-                >
-                  <Send size={18} />
-                  <span className="hidden sm:inline">Send</span>
-                </button>
-              </div>
-            </div>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ChatSection
+              messageProps={uiMessages}
+              loading={loading}
+              input={input}
+              setInput={setInput}
+              onSend={handleSendMessage}
+              onKeyPress={handleKeyPress}
+              enableChat={enableChat}
+              placeholder="Type your message in English..."
+              emptyTitle="WarayTranscribe AI"
+              emptySubtitle="Start a conversation in Waray-Waray"
+              emptyMessage="Type your message here..."
+            />
           </div>
         </main>
       </div>
 
-      {/* Footer */}
-      <footer className="backdrop-blur-md bg-white/50 border-t border-gray-200/50 p-4 mt-auto">
+      <footer className="backdrop-blur-md bg-slate-950/60 border-t border-blue-900/60 p-4 mt-auto">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-sm text-gray-600">
-            &copy; {currentYear} Kim Nique, Inc. All rights reserved.
-          </p>
+          <p className="text-sm text-slate-300">&copy; {currentYear} Kim Nique, Inc. All rights reserved.</p>
         </div>
       </footer>
     </div>

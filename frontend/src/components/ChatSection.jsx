@@ -1,94 +1,56 @@
-import { useState } from "react";
 import { Send } from "lucide-react";
-import useAiStore from "../stores/aiStore";
-import { useEffect } from "react";
 
-import { Sparkles } from "lucide-react";
-import { get } from "mongoose";
+export default function ChatSection({
+  messageProps = [],
+  loading = false,
+  input = "",
+  setInput = () => {},
+  onSend = () => {},
+  onKeyPress = () => {},
+  enableChat = true,
+  placeholder = "Type your message in English...",
+  emptyTitle = "WarayTranscribe AI",
+  emptySubtitle = "Start a conversation in Waray-Waray",
+  emptyMessage = "Type your message here...",
+}) {
+  const hasMessages = messageProps.some(
+    (msg) => msg.text && msg.text.trim() !== "",
+  );
 
-export default function ChatSection({ enableChat = true, messageProps = [] }) {
-  const [messages, setMessages] = useState(messageProps);
-  const [input, setInput] = useState("");
-
-  const response = useAiStore((state) => state.response);
-  const fetchResponse = useAiStore((state) => state.fetchResponse);
-  const loading = useAiStore((state) => state.loading);
-
-  const handleSend = () => {
-    if (!input.trim()) return;
-
-    // Add user message
-    setMessages([
-      ...messages,
-      { from: "user", text: input, time: getCurrentTime() },
-    ]);
-
-    // Fetch AI response
-    fetchResponse(input);
-
-    setInput("");
-  };
-
-  function getCurrentTime() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, "0");
-    const minutes = now.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  // Update messages when AI response arrives
-  useEffect(() => {
-    if (response) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { from: "bot", text: response, time: getCurrentTime() },
-      ]);
-    }
-  }, [response]);
-
-  // Empty state - centered input
-  if (messages.length === 0) {
+  if (!hasMessages) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+      <div className="flex-1 min-h-0 flex items-center justify-center bg-transparent h-full">
         <div className="w-full max-w-2xl px-6">
           <div className="text-center mb-8 animate-fade-in">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
-              <Sparkles className="w-8 h-8 text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-700 to-cyan-600 rounded-2xl mb-4 shadow-lg">
+              <span className="text-white text-2xl font-bold">W</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              WarayTranscribe AI
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {emptyTitle}
             </h1>
-            <p className="text-gray-600">Start a conversation in Waray-Waray</p>
+            <p className="text-slate-300">{emptySubtitle}</p>
           </div>
 
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
-            <div className="relative flex items-center bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-700 to-cyan-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+            <div className="relative flex items-center bg-slate-100 rounded-2xl shadow-2xl shadow-blue-950/40 overflow-hidden border border-blue-200/80 ring-1 ring-white/30">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message here..."
+                onKeyDown={onKeyPress}
+                placeholder={emptyMessage}
                 disabled={!enableChat}
-                className="flex-1 px-6 py-4 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
+                className="min-w-0 flex-1 px-4 sm:px-6 py-4 focus:outline-none text-slate-900 placeholder-slate-500 bg-transparent"
               />
               <button
-                onClick={handleSend}
+                onClick={onSend}
                 disabled={!enableChat || !input.trim()}
-                className={`m-2 px-6 py-3 rounded-xl font-medium text-white transition-all duration-200 
-                  ${
-                    enableChat && input.trim()
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg hover:scale-105 active:scale-95"
-                      : "bg-gray-300 cursor-not-allowed"
-                  }`}
+                className={`m-1 sm:m-2 px-4 sm:px-6 py-3 rounded-xl font-medium text-white shrink-0 transition-all duration-200 ${
+                  enableChat && input.trim()
+                    ? "bg-gradient-to-r from-blue-700 to-cyan-600 hover:shadow-lg hover:scale-105 active:scale-95"
+                    : "bg-slate-400 text-slate-200 cursor-not-allowed"
+                }`}
               >
                 <Send size={20} />
               </button>
@@ -99,59 +61,57 @@ export default function ChatSection({ enableChat = true, messageProps = [] }) {
     );
   }
 
-  // Chat UI with messages
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
-      <div className="flex flex-col bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl h-[90vh] w-full max-w-4xl overflow-hidden border border-white/20">
-        {/* Header */}
-        <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 p-6 shadow-lg">
+    <div className="flex items-center justify-center h-full min-h-0 bg-transparent p-0">
+      <div className="flex flex-col bg-slate-100/95 backdrop-blur-xl shadow-[0_24px_80px_rgba(2,6,23,0.45)] rounded-3xl h-full w-full max-w-4xl overflow-hidden border border-blue-200/80 ring-1 ring-white/40">
+        <div className="relative bg-gradient-to-r from-blue-700 to-cyan-600 p-6 shadow-lg">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-center w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl">
+              <span className="text-white font-bold">W</span>
             </div>
             <div>
-              <h2 className="font-bold text-white text-lg">
-                WarayTranscribe AI
-              </h2>
-              <p className="text-white/80 text-sm">Always here to help</p>
+              <h2 className="font-bold text-white text-lg">{emptyTitle}</h2>
+              <p className="text-cyan-100 text-sm">{emptySubtitle}</p>
             </div>
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gradient-to-b from-transparent to-blue-50/30">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex flex-col ${
-                msg.from === "user" ? "items-end" : "items-start"
-              } animate-slide-up`}
-            >
+        <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gradient-to-b from-white to-blue-50/80">
+          {messageProps
+            .filter((msg) => msg.text && msg.text.trim() !== "")
+            .map((msg, idx) => (
               <div
-                className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md ${
-                  msg.from === "user"
-                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md"
-                    : "bg-white text-gray-800 rounded-bl-md border border-gray-100"
-                }`}
+                key={idx}
+                className={`flex flex-col ${
+                  msg.from === "user" ? "items-end" : "items-start"
+                } animate-slide-up`}
               >
-                <p className="text-sm leading-relaxed">{msg.text}</p>
+                <div
+                  className={`px-5 py-3 rounded-2xl max-w-md shadow-sm transition-all duration-200 hover:shadow-md ${
+                    msg.from === "user"
+                      ? "bg-gradient-to-r from-blue-700 to-cyan-600 text-white rounded-br-md"
+                      : "bg-white text-slate-800 rounded-bl-md border border-blue-100 shadow-sm"
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                </div>
+                <span className="text-xs text-slate-500 mt-1.5 px-2">
+                  {msg.time}
+                </span>
               </div>
-              <span className="text-xs text-gray-400 mt-1.5 px-2">
-                {msg.time}
-              </span>
-            </div>
-          ))}
+            ))}
+
           {loading && (
             <div className="flex items-start space-x-2 animate-fade-in">
-              <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
+              <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-blue-100">
                 <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                   <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"
                     style={{ animationDelay: "0.1s" }}
                   ></div>
                   <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-sky-400 rounded-full animate-bounce"
                     style={{ animationDelay: "0.2s" }}
                   ></div>
                 </div>
@@ -160,31 +120,30 @@ export default function ChatSection({ enableChat = true, messageProps = [] }) {
           )}
         </div>
 
-        {/* Input */}
-        <div className="p-6 bg-white/50 backdrop-blur-sm border-t border-gray-100">
+        <div className="p-4 sm:p-6 bg-white/90 backdrop-blur-sm border-t border-blue-100">
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition duration-300"></div>
-            <div className="relative flex items-center bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-700 to-cyan-600 rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition duration-300"></div>
+            <div className="relative flex items-center bg-slate-100 rounded-2xl shadow-2xl shadow-blue-950/30 overflow-hidden border border-blue-200/80 ring-1 ring-white/30">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type Waray-Waray here..."
+                onKeyDown={onKeyPress}
+                placeholder={placeholder}
                 disabled={!enableChat}
-                className={`flex-1 px-5 py-4 focus:outline-none bg-transparent text-gray-700 placeholder-gray-400
-                  ${!enableChat && "cursor-not-allowed"}`}
+                className={`min-w-0 flex-1 px-4 sm:px-5 py-4 focus:outline-none bg-transparent text-slate-900 placeholder-slate-500 ${
+                  !enableChat && "cursor-not-allowed"
+                }`}
               />
 
               <button
-                onClick={handleSend}
+                onClick={onSend}
                 disabled={!enableChat || !input.trim()}
-                className={`m-2 p-3 rounded-xl transition-all duration-200 
-                  ${
-                    enableChat && input.trim()
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105 active:scale-95"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
+                className={`m-1 sm:m-2 p-2.5 sm:p-3 rounded-xl shrink-0 transition-all duration-200 ${
+                  enableChat && input.trim()
+                    ? "bg-gradient-to-r from-blue-700 to-cyan-600 text-white hover:shadow-lg hover:scale-105 active:scale-95"
+                    : "bg-slate-400 text-slate-200 cursor-not-allowed"
+                }`}
               >
                 <Send size={20} />
               </button>

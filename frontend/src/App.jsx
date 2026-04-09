@@ -9,14 +9,13 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 import { Toaster } from "react-hot-toast";
 import useUserStore from "./stores/useUserStore.js";
 import { useEffect } from "react";
-import { div } from "framer-motion/client";
 
 function App() {
-  const { user, checkingAuth, initializeAuth } = useUserStore();
+  const { checkingAuth, initializeAuth } = useUserStore();
 
   useEffect(() => {
-    initializeAuth(); // Calls /auth/me to check if user is logged in via cookie
-  }, []);
+    initializeAuth();
+  }, [initializeAuth]);
 
   if (checkingAuth) {
     return <div className="text-center mt-20">Loading...</div>;

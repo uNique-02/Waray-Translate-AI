@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axios from "../lib/axios";
 
-const useMessageStore = create((set, get) => ({
+const useMessageStore = create((set) => ({
   messages: [],
   response: null,
   loading: false,
@@ -37,11 +37,6 @@ const useMessageStore = create((set, get) => ({
         query,
         response,
       });
-
-      console.log(
-        "STORE AFTER SENDING MESSAGE, RESPONSE FROM SERVER: ",
-        res.data,
-      );
 
       const { chat, message } = res.data;
 

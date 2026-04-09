@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { MessageSquare, Settings, Info } from "lucide-react";
 import useUserStore from "../stores/useUserStore.js";
 
@@ -9,7 +10,20 @@ export default function Sidebar({
   showChats,
   setShowChats,
 }) {
-  const { user, logout } = useUserStore();
+  const { user } = useUserStore();
+  const [activeTools, setActiveTools] = useState({
+    info: showInfo,
+    chats: showChats,
+    settings: false,
+  });
+
+  useEffect(() => {
+    setActiveTools((prev) => ({
+      ...prev,
+      info: showInfo,
+      chats: showChats,
+    }));
+  }, [showInfo, showChats]);
 
   // console.log("Sidebar props:", { showChats, setShowChats });
 
@@ -20,20 +34,26 @@ export default function Sidebar({
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static`}
     >
-      <aside className="w-20 backdrop-blur-md bg-white/50 border-r border-gray-200/50 flex flex-col items-center py-6 space-y-4">
+      <aside className="w-20 backdrop-blur-md bg-transparent flex flex-col items-center py-6 space-y-4">
         {/* Info Toggle Button */}
         <div className="relative group">
           <button
-            onClick={() => setShowInfo(!showInfo)}
+            onClick={() => {
+              setShowInfo(!showInfo);
+              setActiveTools((prev) => ({
+                ...prev,
+                info: !showInfo,
+              }));
+            }}
             className={`p-3 rounded-xl transition-all duration-300 ${
-              showInfo
-                ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105"
-                : "bg-white hover:bg-gray-50 text-gray-700 shadow-sm hover:shadow-md"
+              activeTools.info
+                ? "bg-blue-100 text-blue-900 shadow-lg scale-105 ring-2 ring-blue-200"
+                : "bg-white hover:bg-slate-100 text-slate-900 shadow-sm hover:shadow-md"
             }`}
           >
             <Info size={20} />
           </button>
-          <span className="absolute left-20 top-3 text-xs font-medium text-gray-700 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-10">
+          <span className="absolute left-20 top-3 text-xs font-medium text-slate-900 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg border border-slate-200 whitespace-nowrap z-10">
             {showInfo ? "Hide Info" : "Show Info"}
           </span>
         </div>
@@ -45,16 +65,20 @@ export default function Sidebar({
               onClick={() => {
                 setShowChats(!showChats);
                 setIsOpen(false); // Close sidebar on mobile after selection
+                setActiveTools((prev) => ({
+                  ...prev,
+                  chats: !showChats,
+                }));
               }}
               className={`p-3 rounded-xl transition-all duration-300 ${
-                showChats
-                  ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105"
-                  : "bg-white hover:bg-gray-50 text-gray-700 shadow-sm hover:shadow-md"
+                activeTools.chats
+                  ? "bg-blue-100 text-blue-900 shadow-lg scale-105 ring-2 ring-blue-200"
+                  : "bg-white hover:bg-slate-100 text-slate-900 shadow-sm hover:shadow-md"
               }`}
             >
               <MessageSquare size={20} />
             </button>
-            <span className="absolute left-20 top-3 text-xs font-medium text-gray-700 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-10">
+            <span className="absolute left-20 top-3 text-xs font-medium text-slate-900 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg border border-slate-200 whitespace-nowrap z-10">
               {showChats ? "Hide Chats" : "Show Chats"}
             </span>
           </div>
@@ -62,10 +86,22 @@ export default function Sidebar({
 
         {/* Settings Button */}
         <div className="relative group">
-          <button className="p-3 rounded-xl bg-white hover:bg-gray-50 text-gray-700 shadow-sm hover:shadow-md transition-all">
+          <button
+            onClick={() =>
+              setActiveTools((prev) => ({
+                ...prev,
+                settings: !prev.settings,
+              }))
+            }
+            className={`p-3 rounded-xl transition-all duration-300 ${
+              activeTools.settings
+                ? "bg-blue-100 text-blue-900 shadow-lg scale-105 ring-2 ring-blue-200"
+                : "bg-white hover:bg-slate-100 text-slate-900 shadow-sm hover:shadow-md"
+            }`}
+          >
             <Settings size={20} />
           </button>
-          <span className="absolute left-20 top-3 text-xs font-medium text-gray-700 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-10">
+          <span className="absolute left-20 top-3 text-xs font-medium text-slate-900 opacity-0 group-hover:opacity-100 transition-all bg-white px-3 py-2 rounded-lg shadow-lg border border-slate-200 whitespace-nowrap z-10">
             Settings
           </span>
         </div>

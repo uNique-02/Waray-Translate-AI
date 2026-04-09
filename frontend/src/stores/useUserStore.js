@@ -2,9 +2,8 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import apiClient from "../lib/axios";
-import { code } from "framer-motion/client";
 
-const useUserStore = create((set, get) => ({
+const useUserStore = create((set) => ({
   user: null,
   checkingAuth: true,
 
@@ -79,11 +78,11 @@ const useUserStore = create((set, get) => ({
       // If 401, try to refresh token
       if (error.response?.status === 401) {
         try {
-          await apiClient.post("/auth/refresh");
+          await apiClient.post("/auth/refresh-token");
           const newResponse = await apiClient.get("/auth/profile");
           set({ user: newResponse.data, checkingAuth: false });
           return;
-        } catch (refreshError) {
+        } catch {
           console.log("Refresh failed");
         }
       }

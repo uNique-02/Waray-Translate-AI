@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   MessageSquare,
   Settings,
-  Info,
   Sparkles,
-  Send,
   Plus,
   Menu,
   X,
@@ -16,7 +14,6 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useUserStore from "../stores/useUserStore.js";
-import { useEffect } from "react";
 
 export default function Navbar({ isOpen, setIsOpen }) {
   const location = useLocation();
@@ -24,11 +21,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
   const { user, logout } = useUserStore();
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    console.log("USER: ", user);
-    // if (user.chats) console.log("USER CHATS: ", user.chats);
-  }, []);
 
   const handleLogout = () => {
     logout();
@@ -42,22 +34,24 @@ export default function Navbar({ isOpen, setIsOpen }) {
         {/* Menu button (visible on mobile) */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg hover:bg-gray-200 transition lg:hidden"
+          className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/20 bg-slate-100/10 text-slate-100 shadow-sm transition hover:bg-slate-100/20 focus:outline-none focus:ring-2 focus:ring-cyan-300/70"
+          type="button"
+          aria-label={isOpen ? "Close menu" : "Open menu"}
         >
           {isOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl blur-sm opacity-75"></div>
-            <div className="relative bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl blur-sm opacity-75"></div>
+            <div className="relative bg-gradient-to-br from-blue-700 to-cyan-600 p-2 rounded-xl">
               <MessageSquare className="text-white" size={24} />
             </div>
           </div>
           <div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
               WarayTranscribe AI
             </span>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="flex items-center gap-1 text-xs text-slate-400">
               <Sparkles size={10} />
               <span>Powered by AI</span>
             </div>
@@ -66,19 +60,19 @@ export default function Navbar({ isOpen, setIsOpen }) {
         <nav className="hidden sm:flex space-x-6 text-sm font-medium">
           <a
             href="/"
-            className="text-gray-600 hover:text-blue-600 transition-colors"
+            className="text-gray-300 hover:text-cyan-300 transition-colors"
           >
             Home
           </a>
           <a
             href="/about"
-            className="text-gray-600 hover:text-blue-600 transition-colors"
+            className="text-gray-300 hover:text-cyan-300 transition-colors"
           >
             About
           </a>
           <a
             href="/features"
-            className="text-gray-600 hover:text-blue-600 transition-colors"
+            className="text-gray-300 hover:text-cyan-300 transition-colors"
           >
             Features
           </a>
@@ -87,23 +81,42 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
       <div className="flex items-center gap-3">
         {/* Mobile: Icon button */}
-        {location.pathname === "/" && (
+        {location.pathname === "/" && !user && (
           <Link
             to="/new"
-            className="sm:hidden p-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full hover:shadow-lg hover:scale-105 transition-all"
+            className="sm:hidden p-3 bg-gradient-to-r from-blue-700 to-cyan-600 text-white rounded-full hover:shadow-lg hover:scale-105 transition-all"
             aria-label="Get Started"
           >
             <Plus size={20} />
           </Link>
         )}
 
-        {/* Desktop: Full button */}
-        {location.pathname === "/" && (
+        {location.pathname === "/" && user && (
           <Link
             to="/new"
-            className="hidden sm:block px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:scale-105 transition-all"
+            className="sm:hidden p-3 bg-gradient-to-r from-blue-700 to-cyan-600 text-white rounded-full hover:shadow-lg hover:scale-105 transition-all"
+            aria-label="New Chat"
+          >
+            <Plus size={20} />
+          </Link>
+        )}
+
+        {/* Desktop: Full button */}
+        {location.pathname === "/" && !user && (
+          <Link
+            to="/new"
+            className="hidden sm:block px-5 py-2 bg-gradient-to-r from-blue-700 to-cyan-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:scale-105 transition-all"
           >
             Get Started
+          </Link>
+        )}
+
+        {location.pathname === "/" && user && (
+          <Link
+            to="/new"
+            className="hidden sm:block px-5 py-2 bg-gradient-to-r from-blue-700 to-cyan-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:scale-105 transition-all"
+          >
+            New Chat
           </Link>
         )}
 
@@ -111,10 +124,10 @@ export default function Navbar({ isOpen, setIsOpen }) {
         <div className="relative hidden lg:block">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition-all duration-200 group"
+            className="flex items-center gap-2 p-2 rounded-full hover:bg-blue-950/30 transition-all duration-200 group"
             aria-label="Profile Menu"
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-700 to-cyan-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               {!user && <User className="text-white" size={20} />}
               {user && (
                 <img
@@ -127,7 +140,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
             </div>
             <ChevronDown
               size={16}
-              className={`text-gray-500 transition-transform duration-200 ${
+              className={`text-slate-300 transition-transform duration-200 ${
                 isDropdownOpen ? "rotate-180" : ""
               }`}
             />
@@ -143,15 +156,15 @@ export default function Navbar({ isOpen, setIsOpen }) {
               />
 
               {/* Dropdown content */}
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute right-0 mt-2 w-56 bg-slate-100/95 backdrop-blur-xl rounded-xl shadow-2xl border border-blue-200/80 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* User Info (if logged in) */}
                 {user && (
                   <>
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-800 truncate">
+                    <div className="px-4 py-3 border-b border-blue-100">
+                      <p className="text-sm font-semibold text-slate-900 truncate">
                         {user.name || "User"}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-slate-500 truncate">
                         {user.email || "user@example.com"}
                       </p>
                     </div>
@@ -163,7 +176,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
                   {user ? (
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                     >
                       <LogOut size={18} />
                       <span>Logout</span>
@@ -172,7 +185,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
                     <Link
                       to="/login"
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                     >
                       <LogIn size={18} />
                       <span>Login</span>
@@ -182,7 +195,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
                   <Link
                     to="/developers"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                   >
                     <Code size={18} />
                     <span>Developers</span>
@@ -191,7 +204,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
                   <Link
                     to="/settings"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                   >
                     <Settings size={18} />
                     <span>Settings</span>

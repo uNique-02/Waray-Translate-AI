@@ -1,5 +1,5 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import useUserStore from "../stores/useUserStore.js";
 
 const GoogleSignUpButton = () => {
@@ -26,12 +26,12 @@ const GoogleSignUpButton = () => {
   });
 
   return (
-    <motion.button
+    <Motion.button
       type="button"
       onClick={() => login()}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md group hover:cursor-pointer"
+      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-slate-100 border-2 border-blue-200 rounded-xl font-medium text-slate-900 hover:bg-slate-50 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md group hover:cursor-pointer"
     >
       {/* Google Logo SVG */}
       <svg
@@ -57,10 +57,10 @@ const GoogleSignUpButton = () => {
         />
       </svg>
 
-      <span className="group-hover:text-gray-900 transition-colors duration-200">
+      <span className="group-hover:text-slate-950 transition-colors duration-200">
         Sign up with Google
       </span>
-    </motion.button>
+    </Motion.button>
   );
 };
 

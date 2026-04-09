@@ -9,6 +9,21 @@ import { OAuth2Client } from "google-auth-library";
 const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY = "7d"; // Used for JWT, separate TTL for Redis
 
+function maskEmail(email) {
+  if (!email || typeof email !== "string") return "unknown";
+  const [name, domain] = email.split("@");
+  if (!domain) return "invalid-email";
+  const safeName = name.length <= 2 ? `${name[0] || "*"}*` : `${name.slice(0, 2)}***`;
+  return `${safeName}@${domain}`;
+}
+
+function getRequestMeta(req) {
+  return {
+    ip: req.ip || req.headers["x-forwarded-for"] || "unknown",
+    userAgent: req.headers["user-agent"] || "unknown",
+  };
+}
+
 export const signup = async (req, res) => {
   try {
     const { name, email, password, confirmPassword, role } = req.body;
@@ -74,43 +89,82 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
+  const startedAt = Date.now();
+  const { ip, userAgent } = getRequestMeta(req);
+
   try {
     const { email, password } = req.body;
+    const safeEmail = maskEmail(email);
+
+    console.log("[AUTH][LOGIN] Incoming login request", {
+      email: safeEmail,
+      hasPassword: Boolean(password),
+      ip,
+      userAgent,
+    });
 
     // Validate input
     if (!email || !password) {
+      console.warn("[AUTH][LOGIN] Validation failed: missing email or password", {
+        email: safeEmail,
+        ip,
+      });
       return res
         .status(400)
         .json({ message: "Email and password are required" });
     }
 
-    // console.log("Login attempt with email:", email, password);
-
     // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      // console.log("No user found with email:", email);
+      console.warn("[AUTH][LOGIN] User lookup failed: user not found", {
+        email: safeEmail,
+        ip,
+      });
       return res
         .status(400)
         .json({ message: "User does not exist. Please try again." });
     }
 
+    console.log("[AUTH][LOGIN] User found", {
+      userId: user._id?.toString(),
+      email: safeEmail,
+      isGoogleUser: user.isGoogleUser,
+    });
+
     // Check if password is correct
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      // console.log("Password mismatch for user:", email);
+      console.warn("[AUTH][LOGIN] Password check failed", {
+        userId: user._id?.toString(),
+        email: safeEmail,
+        ip,
+      });
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
+    console.log("[AUTH][LOGIN] Password check passed", {
+      userId: user._id?.toString(),
+    });
+
     // Generate tokens and save refresh token
     const { accessToken, refreshToken } = await generateTokens(user);
-    // console.log("Generated tokens for user:", user._id);
-    // console.log("Access Token:", accessToken);
-    // console.log("Refresh Token:", refreshToken);
+    console.log("[AUTH][LOGIN] Tokens generated", {
+      userId: user._id?.toString(),
+      hasAccessToken: Boolean(accessToken),
+      hasRefreshToken: Boolean(refreshToken),
+    });
+
     await saveRefreshToken(user._id, refreshToken);
+    console.log("[AUTH][LOGIN] Refresh token saved", {
+      userId: user._id?.toString(),
+    });
 
     // Set cookies
     setCookies(res, accessToken, refreshToken);
+    console.log("[AUTH][LOGIN] Cookies set successfully", {
+      userId: user._id?.toString(),
+    });
 
     res.status(200).json({
       message: "Login successful",
@@ -124,9 +178,19 @@ export const login = async (req, res) => {
         role: user.role,
       },
     });
+
+    console.log("[AUTH][LOGIN] Completed successfully", {
+      userId: user._id?.toString(),
+      durationMs: Date.now() - startedAt,
+    });
   } catch (error) {
-    // console.log("What the fuck is going on here");
-    console.error("Login Error:", error);
+    console.error("[AUTH][LOGIN] Unexpected error", {
+      message: error?.message,
+      stack: error?.stack,
+      ip,
+      userAgent,
+      durationMs: Date.now() - startedAt,
+    });
     res.status(500).json({
       message: "Server error. Please try again later.",
       error: error.message,
