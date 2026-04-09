@@ -81,7 +81,6 @@ export const sendMessage = async (req, res) => {
 
     // Safeguard if message failed to create
     if (!message) {
-      console.warn("No message created; skipping push to chat");
       return res.status(400).json({ message: "Failed to create message" });
     }
 

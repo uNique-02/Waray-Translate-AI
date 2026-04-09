@@ -6,7 +6,6 @@ dotenv.config();
 
 export const protectRoute = (req, res, next) => {
   if (!req.cookies.accessToken) {
-    console.log("No access token in cookies");
   }
   // console.log("Cookies:", req.cookies);
   const token =

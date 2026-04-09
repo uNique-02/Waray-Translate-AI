@@ -12,7 +12,6 @@ const useAiStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const res = await axios.post("/ai", { prompt });
-      console.log("Fetched response:", res.data);
       set({
         response: res.data.response,
         loading: false,

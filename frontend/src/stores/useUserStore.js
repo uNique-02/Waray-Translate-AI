@@ -83,7 +83,6 @@ const useUserStore = create((set) => ({
           set({ user: newResponse.data, checkingAuth: false });
           return;
         } catch {
-          console.log("Refresh failed");
         }
       }
       set({ user: null, checkingAuth: false });

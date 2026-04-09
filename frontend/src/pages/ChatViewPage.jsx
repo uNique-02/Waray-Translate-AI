@@ -188,7 +188,7 @@ export default function ChatViewPage({ enableChat = true }) {
           text: `Check out this chat: ${chat.title}`,
           url: shareUrl,
         })
-        .catch((error) => console.log("Error sharing:", error));
+        .catch(() => {});
     } else {
       navigator.clipboard.writeText(shareUrl).then(() => {
         alert("Chat link copied to clipboard!");

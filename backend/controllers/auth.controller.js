@@ -180,7 +180,6 @@ export const logout = async (req, res) => {
       userId = decoded.id;
     } catch (err) {
       // If token is invalid, treat as logout anyway
-      console.warn("Invalid refresh token on logout");
     }
 
     // Delete the refresh token from Redis

@@ -26,8 +26,6 @@ export default function AuthForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Redirecting to:", from);
-    console.log("Form Data:", formData);
     try {
       const response = await signup(formData);
 

@@ -7,20 +7,15 @@ const GoogleSignUpButton = () => {
 
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
-      console.log("Login Success: codeResponse:", codeResponse);
       const authorizationCode = codeResponse.code;
-      console.log("Authorization Code:", authorizationCode);
 
       try {
         await googleAuth(authorizationCode);
-        console.log("Backend exchange initiated with authorization code.");
       } catch (error) {
         console.error("Error sending authorization code to backend:", error);
       }
     },
-    onError: (errorResponse) => {
-      console.log("Login Failed:", errorResponse);
-    },
+    onError: () => {},
     prompt: "select_account",
     flow: "auth-code",
   });
