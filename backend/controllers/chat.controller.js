@@ -57,9 +57,12 @@ export const createChat = async (userId, message) => {
 export const getUserChats = async (req, res) => {
   try {
     const { userId } = req.query;
-    // console.log("USER iD: ", userId);
+    console.log("[chat.controller] getUserChats start", { userId });
     const chats = await Chat.find({ user: userId }).populate("messages");
-    // console.log("USER CHATS", chats);
+    console.log("[chat.controller] getUserChats success", {
+      userId,
+      count: chats.length,
+    });
     res.status(200).json(chats);
   } catch (error) {
     console.error("Error fetching user chats:", error);
@@ -88,10 +91,13 @@ export const addMessageToChat = async (req, res) => {
 export const getChatById = async (req, res) => {
   try {
     const chatId = req.params.chatId;
+    console.log("[chat.controller] getChatById start", { chatId });
     const chat = await Chat.findOne({ _id: chatId });
     if (!chat) {
+      console.log("[chat.controller] getChatById not found", { chatId });
       return res.status(404).json({ message: "Chat not found" });
     }
+    console.log("[chat.controller] getChatById success", { chatId });
     res.status(200).json(chat);
   } catch (error) {
     console.error("Error fetching chat by ID:", error);
@@ -103,9 +109,11 @@ export const deleteChat = async (req, res) => {
   try {
     // console.log("Deleting chat with params:", req.params);
     const { chatId } = req.params;
+    console.log("[chat.controller] deleteChat start", { chatId });
 
     const chat = await Chat.findById(chatId);
     if (!chat) {
+      console.log("[chat.controller] deleteChat not found", { chatId });
       return res.status(404).json({ error: "Chat not found" });
     }
 
@@ -117,6 +125,7 @@ export const deleteChat = async (req, res) => {
     await Chat.deleteOne({ _id: chatId });
 
     // console.log(`Chat ${chatId} deleted successfully`);
+    console.log("[chat.controller] deleteChat success", { chatId });
     return res.status(200).json({ message: "Chat deleted successfully" });
   } catch (error) {
     console.error("Error deleting chat:", error);
